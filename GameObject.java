@@ -1,14 +1,13 @@
 import java.awt.*;
 import java.awt.image.BufferedImage;
-
 import java.io.File;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
 public class GameObject {
-    private Image image;
-    private File file;
+    private Image[] image;
+    private File[] file;
 
     private int width;
     private int height;
@@ -17,6 +16,7 @@ public class GameObject {
     private int posY;
 
     private int z_index = 0;
+    private int renderIndex = 0;
 
     private boolean interactable = false;
 
@@ -29,8 +29,10 @@ public class GameObject {
 
     private Distance dst;
 
-    public GameObject(String file, int width, int height) {        
-        this.file = new File(file);
+    public GameObject(String file, int width, int height) {    
+        this.file = new File[1];    
+        this.image = new Image[1];
+        this.file[0] = new File(file);
 
         this.visible = true;
         scale(width, height);
@@ -39,13 +41,15 @@ public class GameObject {
     }
 
     public GameObject(String file) {
-        this.file = new File(file);
+        this.file = new File[1];    
+        this.image = new Image[1];
+        this.file[0] = new File(file);
         try {
-            BufferedImage original = ImageIO.read(this.file);
+            BufferedImage original = ImageIO.read(this.file[0]);
             this.width = original.getWidth();
             this.height = original.getHeight();
 
-            this.image = ImageIO.read(this.file);
+            this.image[0] = ImageIO.read(this.file[0]);
         }
         catch(IOException e) {
             System.out.println("Error while opening file : " + e);
@@ -56,10 +60,15 @@ public class GameObject {
         init();
     }
 
-    public GameObject(int width, int height) {
-        this.visible = false;
-        this.width = width;
-        this.height = height;
+    public GameObject(String[] files, int width, int height) {
+        this.file = new File[files.length];    
+        this.image = new Image[files.length];
+        
+        for(int i = 0; i < files.length; i++) 
+            this.file[i] = new File(files[i]);
+
+        scale(width, height);
+        this.visible = true;
 
         init();
     }
@@ -82,20 +91,29 @@ public class GameObject {
         this.posY += y;
     }
 
-    public boolean scale(int width, int height) {
-        if(width == this.width && height == this.height) return false;
-
-        BufferedImage originalImage;
-        try {
-            originalImage = ImageIO.read(this.file);
-            this.image = originalImage.getScaledInstance(width, height, Image.SCALE_SMOOTH);
-            this.height = height;
-            this.width = width;
-        } catch (IOException e) {
-            System.out.println("error while resizing image : " + e);
+    public void scale(int width, int height) {
+        for(int i = 0; i < this.file.length; i++) {
+            try {
+                BufferedImage originalImage = ImageIO.read(this.file[i]);
+                this.image[i] = originalImage.getScaledInstance(width, height, Image.SCALE_SMOOTH);
+            } catch (IOException e) {
+                System.out.println("error while resizing image at " + i + " : " + e);
+            }
         }
 
-        return true;
+        this.height = height;
+        this.width = width;
+    }
+
+    public void mix(Image img) {
+        BufferedImage res = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D dis = res.createGraphics();
+
+        dis.drawImage(image[0], 0, 0, null);
+        dis.drawImage(img, width/2-img.getWidth(null)/2, height/2-img.getHeight(null)/2, null);
+        dis.dispose();
+
+        image[0] = res.getScaledInstance(width, height, Image.SCALE_SMOOTH);
     }
 
     private Distance circle = new Distance() {
@@ -156,8 +174,23 @@ public class GameObject {
     public int getWidth() { return width; }
     public int getHeight() { return height; }
 
-    public Image getImage() { return this.image; }
-    public void setImage(Image img) { this.image = img; }
+    public void nextImage() { renderIndex = (renderIndex > image.length-2)?0:renderIndex+1; }
+    public void setImage(int i) { renderIndex = i; }
+    public int getRenderIndex() { return renderIndex; }
+
+    public File[] getFiles() { return this.file; }
+ 
+    public Image getImage() { return this.image[renderIndex]; }
+    public void setImage(Image img) { this.image[renderIndex] = img; }
+    public void setImage(Image[] img, File[] files) { this.image = img.clone(); this.file = files.clone(); }
+    public Image getImage(int i) { 
+        if(i > image.length - 1) return null;
+        return this.image[i]; 
+    }
+    public void setImage(Image img, int i) { 
+        if(i < image.length - 1)
+            this.image[i] = img; 
+    }
 }
 
 interface Distance {

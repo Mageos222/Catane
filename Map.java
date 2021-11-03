@@ -18,9 +18,10 @@ public class Map {
                     continue;
                 }
 
-                int value = rnd.nextInt(6);
+                int type = rnd.nextInt(6);
+                int value = rnd.nextInt(11)+2;
 
-                map[x*5+y - discount] = new Tiles(new Vector2(-88*(2-x)+44*(y%2), -75*(2-y)), value);
+                map[x*5+y - discount] = new Tiles(new Vector2(-98*(2-x)+49*(y%2), -75*(2-y)), type, value);
             }
         }
     }

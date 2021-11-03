@@ -39,16 +39,47 @@ public class Game {
             for(int y = 0; y < 6; y++) {
                 if((y==0||y==5)&&(x<2||x>8)||(y==1||y==4)&&(x==0||x==10)) continue;
                 
-                GameObject empty = new GameObject(30, 30);
-                empty.setPosition(-44*(5-x), -75*(3-y)+(2*(y%2)-1)*14*((x%2)-((x+1)%2))+38);
-                empty.setZindex(3);
+                String[] houses = {"Images/villageRed.png", "Images/villageBlue.png", "Images/villageGreen.png", "Images/villageYellow.png"};
+                GameObject empty = new GameObject(houses, 40, 40);
+                empty.setPosition(-49*(5-x), -75*(3-y)+(2*(y%2)-1)*10*((x%2)-((x+1)%2))+30);
+                empty.setZindex(4);
+                empty.setVisible(false);
 
                 empty.setInteractable(true);
 
                 empty.setOnHoverEnterAction(i -> i.snap(empty));
-                empty.setOnHoverExitAction(i -> i.exit(empty));
-                empty.setOnMouseClickedAction(i -> i.addNewObject(empty));
+                empty.setOnHoverExitAction(i -> i.unsnap(empty));
+                empty.setOnMouseClickedAction(i -> i.addNewObject(empty, true));
                 ui.add(empty);
+
+                if(x < 8 || ((y == 1 || y == 4) && x < 9) || ((y == 2 || y == 3) && x < 10)) {
+                    String[] img = {"Images/RoadRightRed.png", "Images/RoadLeftRed.png" };
+                    GameObject emptyRoad = new GameObject(img[Math.abs(x%2-y%2)], 60, 60);
+                    emptyRoad.setPosition(-49*(5-x)+25, -75*(3-y)+38);
+                    emptyRoad.setVisible(false);
+                    emptyRoad.setZindex(3);
+
+                    emptyRoad.setInteractable(true);
+
+                    emptyRoad.setOnHoverEnterAction(i -> i.snap(emptyRoad));
+                    emptyRoad.setOnHoverExitAction(i -> i.unsnap(emptyRoad));
+                    emptyRoad.setOnMouseClickedAction(i -> i.addNewObject(emptyRoad, false));
+                    ui.add(emptyRoad);
+                }
+
+                if(x%2-(y+1)%2==0) {
+                    GameObject emptyRoad2 = new GameObject("Images/RoadRed.png", 60, 60);
+                    emptyRoad2.setPosition(-49*(5-x), -75*(3-y));
+                    emptyRoad2.setZindex(3);
+                    emptyRoad2.setVisible(false);
+
+                    emptyRoad2.setInteractable(true);
+
+                    emptyRoad2.setOnHoverEnterAction(i -> i.snap(emptyRoad2));
+                    emptyRoad2.setOnHoverExitAction(i -> i.unsnap(emptyRoad2));
+                    emptyRoad2.setOnMouseClickedAction(i -> i.addNewObject(emptyRoad2, false));
+                    ui.add(emptyRoad2);
+                }
             }
         }
 
@@ -57,8 +88,8 @@ public class Game {
         button.setPosition(250, 200);
         button.setZindex(2);
 
-        button.setOnHoverEnterAction(i -> i.focus(button));
-        button.setOnHoverExitAction(i -> i.unfocus(button));
+        button.setOnHoverEnterAction(i -> i.focus(button, 20));
+        button.setOnHoverExitAction(i -> i.unfocus(button, 20));
         button.setOnMouseClickedAction(i -> i.setNewObject(new GameObject("Images/HouseRed.png", 30, 30)));
 
         button.setDistanceToSquare();
