@@ -6,18 +6,30 @@ import java.awt.image.BufferedImage;
 import java.awt.event.*; 
 
 public class UI extends Canvas {
-    
-    private static Frame f;
+    public enum Event { MOUSE_LEFT_CLICK, MOUSE_RIGHT_CLICK } 
 
-    private static int WIDTH = 720;
-    private static int HEIGHT = 480;
+    private Frame f;
 
-    List<GameObject> gameObjects;
-    private GameObject newObject;
+    private final int WIDTH;
+    private final int HEIGHT;
+
+    private int width;
+    private int height;
+
+    private transient List<GameObject> gameObjects;
 
     private boolean mouseClicked = false;
+    private boolean rescale = false;
 
-    public UI () {
+    private List<Event> events;
+
+    public UI (int width, int height) {
+        this.WIDTH = width;
+        this.HEIGHT = height;
+
+        this.width = width;
+        this.height = height;
+
         setBackground (Color.CYAN);    
         setSize(WIDTH, HEIGHT); 
 
@@ -30,75 +42,111 @@ public class UI extends Canvas {
         
         gameObjects = new ArrayList<>();
 
-        GameObject background = new GameObject("Images/Water.png", WIDTH, HEIGHT);
-        background.setPosition(0, 0);
-        add(background);
+        this.events = new ArrayList<>();
         
-        // Close event
         f.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent we) {
                 f.dispose();
             }
         });
+
+        f.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent componentEvent) {
+                rescale = true;
+            }
+        });
+        
         addMouseListener(new MouseListener() {
             public void mouseClicked(MouseEvent e) {  
-                if(e.getButton() == 1) 
+                if(e.getButton() == 1) {
                     mouseClicked = true;
-                else if(e.getButton() == 3) {
-                    gameObjects.remove(newObject);
-                    newObject = null;
+                    if(!events.contains(Event.MOUSE_LEFT_CLICK))
+                        events.add(Event.MOUSE_LEFT_CLICK);
                 }
+                else if(e.getButton() == 3 && !events.contains(Event.MOUSE_RIGHT_CLICK)) 
+                    events.add(Event.MOUSE_RIGHT_CLICK);
             }  
-            public void mouseEntered(MouseEvent e) { }  
-            public void mouseExited(MouseEvent e) { }  
-            public void mousePressed(MouseEvent e) { }  
-            public void mouseReleased(MouseEvent e) { } 
+            public void mouseEntered(MouseEvent e) { /* not used */ }  
+            public void mouseExited(MouseEvent e) { /* not used */ }  
+            public void mousePressed(MouseEvent e) { 
+                if(e.getButton() == 1) {
+                    mouseClicked = true;
+                    if(!events.contains(Event.MOUSE_LEFT_CLICK))
+                        events.add(Event.MOUSE_LEFT_CLICK);
+                }
+                else if(e.getButton() == 3 && !events.contains(Event.MOUSE_RIGHT_CLICK))
+                    events.add(Event.MOUSE_RIGHT_CLICK);
+            }  
+            public void mouseReleased(MouseEvent e) { /* not used */ } 
         });  
 
         System.out.println("Ready");
         
     }
+    
+    public void setBackground(String file) {
+        GameObject background = new GameObject(file, WIDTH, HEIGHT);
+        background.setPosition(0, 0);
+        add(background);
+    }
 
-    public void analyse() {
+    public List<Event> nextFrame() {
         Point mousePos = getRelativPosition(MouseInfo.getPointerInfo().getLocation());
+        mousePos.setLocation(mousePos.getX(), mousePos.getY());
 
-        if(newObject != null) newObject.setPosition((int)mousePos.getX(), (int)mousePos.getY());
+        if(rescale) rescale();
+        checkCollision(mousePos);
 
-        GameObject res = null;
+        repaint();
+        
+        mouseClicked = false;
 
-        for(GameObject obj : gameObjects) {
-            if(!obj.isInteractable()) continue;
+        List<Event> ret = new ArrayList<>(events);
+        events.clear();
 
-            if(obj.isOn(mousePos)) {
-                if(res == null) res = obj;
-                else {
-                    if(obj.distanceFrom(mousePos) < res.distanceFrom(mousePos)) {
-                        if(res.isHover()) res.onHoverExit(this);
-                        res = obj;
-                    }
-                    else if(obj.isHover()) obj.onHoverExit(this);
-                }
-            }
-            if(obj.isHover()) obj.onHoverExit(this);
+        return ret;
+    }
+
+    public void checkCollision(Point mousePos) {
+        Interactable res = null;
+
+        for(GameObject object : gameObjects) {
+            if(!object.isInteractable()) continue;
+            Interactable obj = (Interactable)object;
+
+            if(obj.isOn(mousePos) && (res == null || obj.distanceFrom(mousePos) < res.distanceFrom(mousePos))) 
+                res = obj;
+            if(obj.isHover()) obj.onHoverExit();
         }
 
         if(res != null) {
-            if(!res.isHover()) res.onHoverEnter(this);
-            if(mouseClicked) res.onMouseClicked(this);
+            if(!res.isHover()) res.onHoverEnter();
+            if(mouseClicked) res.onMouseClicked();
         } 
-
-        repaint();
-        mouseClicked = false;
-
-        //System.out.println(mousePos.toString());
     }
 
+    public void rescale() {
+        setSize(f.getWidth(), f.getHeight()); 
+
+        width = f.getWidth();
+        height = f.getHeight();
+
+        rescale = false;
+    }
+ 
     public Point getRelativPosition(Point p) {
         Point r = p;
-        r.setLocation(p.getX() - f.getX(), p.getY() - f.getY());
+        r.setLocation((p.getX() - f.getX() - width/2f)*((float)WIDTH/width), (p.getY() - f.getY() - height/2f)*((float)HEIGHT/height));
 
         return r;
+    }
+
+    public Point getCenterPosition(int x, int y) {
+        Point p = new Point();
+        p.setLocation(x+WIDTH/2, y+HEIGHT/2);
+        return p;
     }
     
     public boolean isActive() {
@@ -106,16 +154,14 @@ public class UI extends Canvas {
     }
 
     public void add(GameObject gameObject) {
-        gameObject.translate(WIDTH/2, HEIGHT/2);
         this.gameObjects.add(gameObject);
     }
 
     @Override
     public void update(Graphics g) {
-        //g.clearRect(0, 0, 720, 480);        
-
         BufferedImage frame = new BufferedImage(WIDTH,HEIGHT, BufferedImage.TYPE_INT_ARGB);
         Graphics2D dis = frame.createGraphics();
+        dis.setBackground(Color.blue);
 
         List<GameObject> renderQueu = new ArrayList<>(gameObjects);
 
@@ -129,7 +175,8 @@ public class UI extends Canvas {
                     continue;
                 }
                 if(gameObject.getZindex() == index) {
-                    dis.drawImage(gameObject.getImage(), gameObject.getPosX(), gameObject.getPosY(), this);
+                    Point pos = getCenterPosition(gameObject.getPosX(), gameObject.getPosY());
+                    dis.drawImage(gameObject.getImage(), (int)pos.getX(), (int)pos.getY(), this);
                     renderQueu.remove(i);
                 }
                 else i++;
@@ -137,61 +184,14 @@ public class UI extends Canvas {
             index++;
         }
 
-        g.drawImage(frame, 0, 0, WIDTH, HEIGHT, this);
+        Image res = frame.getScaledInstance(f.getWidth(), f.getHeight(), Image.SCALE_SMOOTH);
 
-        //System.out.println("Updated");
+        g.drawImage(res, 0, 0, width, height, this);
     }
 
     public void windowClosing (WindowEvent e) {  
         f.dispose();    
     }   
 
-    public void setNewObject(GameObject object) {
-        Point mousePos = getRelativPosition(MouseInfo.getPointerInfo().getLocation());
-        if(newObject != null) gameObjects.remove(newObject);
-
-        this.newObject = object;
-        object.setPosition((int)mousePos.getX(), (int)mousePos.getY());
-        object.setInteractable(false);
-        object.setZindex(3);
-        add(object);
-    }
-
-    public void addNewObject(GameObject object) {
-        object.setHover(false);
-        newObject = null;
-    }
-
-    public void focus(GameObject object) {
-        object.scale(object.getWidth() + 20, object.getHeight() + 20);
-        object.setHover(true);
-        object.setZindex(2);
-    }
-
-    public void unfocus(GameObject object) {
-        object.scale(object.getWidth() - 20, object.getHeight() - 20);
-        object.setHover(false);
-        object.setZindex(1);
-    } 
-
-    public void snap(GameObject object) {
-        if(object.getImage() != null) return;
-
-        if(newObject == null) return;
-        object.setHover(true);
-
-        object.setImage(newObject.getImage());
-        object.setVisible(true);
-        newObject.setVisible(false);
-    }
-
-    public void exit(GameObject object) {
-        object.setVisible(false);
-        object.setHover(false);
-
-        object.setImage(null);
-
-        if(newObject == null) return;
-        newObject.setVisible(true);
-    }
+    public void setCursor(int cursor) { f.setCursor(cursor);}
 }

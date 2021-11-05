@@ -1,12 +1,19 @@
+import java.io.File;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+
+import javax.imageio.ImageIO;
+
 public class Tiles {
 
     public enum Env { FIELD, FOREST, PASTURE, ROCK, CLAY, DESERT }
     private static String[] files = {
-        "./Images/Field.png",
-        "./Images/Forest.png",
-        "./Images/Pasture.png",
-        "./Images/Rock.png",
-        "./Images/Clay.png",
+        "./Images/wheat.png",
+        "./Images/lumber.png",
+        "./Images/sheep.png",
+        "./Images/ore.png",
+        "./Images/brick.png",
         "./Images/Desert.png"
     };
 
@@ -14,12 +21,23 @@ public class Tiles {
     private Env type;
     private int value;
 
-    public Tiles(Vector2 position, int type)
+    public Tiles(Vector2 position, int type, int value)
     {
         this.obj = new GameObject(files[type], 100, 100);
         this.obj.setPosition(position.x, position.y);
 
         this.type = Env.values()[type];
+        this.value = value;
+
+        File file = new File("Images/Jeton"+value+".png");
+        try {
+            BufferedImage originalImage = ImageIO.read(file);
+            Image image = originalImage.getScaledInstance(40, 40, Image.SCALE_SMOOTH);
+            obj.mix(image);
+        }
+        catch(IOException e) {
+            System.out.println("Error while opening Jeton file " + value + " : " + e);
+        }
     }
 
     public GameObject getObject() { return obj; }

@@ -1,14 +1,13 @@
 import java.awt.*;
 import java.awt.image.BufferedImage;
-
 import java.io.File;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
 public class GameObject {
-    private Image image;
-    private File file;
+    private Image[] image;
+    private BufferedImage[] original;
 
     private int width;
     private int height;
@@ -16,60 +15,70 @@ public class GameObject {
     private int posX;
     private int posY;
 
-    private int z_index = 0;
+    private int renderIndex = 0;
 
-    private boolean interactable = false;
-
-    private boolean isHover;
+    private int zIndex = 0;
     private boolean visible;
 
-    private Action onHoverEnter;
-    private Action onHoverExit;
-    private Action onMouseClicked;
-
-    private Distance dst;
-
-    public GameObject(String file, int width, int height) {        
-        this.file = new File(file);
+    public GameObject(String file, int width, int height) {    
+        this.original = new BufferedImage[1];    
+        this.image = new Image[1];
+        try {
+            this.original[0] = ImageIO.read(new File(file));
+        } catch (IOException e) {
+            System.out.println("Error while opening file : " + e);
+        }
 
         this.visible = true;
-        scale(width, height);
-
-        init();
+        setScale(width, height);
     }
 
     public GameObject(String file) {
-        this.file = new File(file);
-        try {
-            BufferedImage original = ImageIO.read(this.file);
-            this.width = original.getWidth();
-            this.height = original.getHeight();
+        this.original = new BufferedImage[1];    
+        this.image = new Image[1];
 
-            this.image = ImageIO.read(this.file);
+        try {
+            original[0] = ImageIO.read(new File(file));
+            this.width = original[0].getWidth();
+            this.height = original[0].getHeight();
+
+            this.image[0] = ImageIO.read(new File(file));
         }
         catch(IOException e) {
             System.out.println("Error while opening file : " + e);
         }
 
         this.visible = true;
-
-        init();
     }
 
-    public GameObject(int width, int height) {
-        this.visible = false;
-        this.width = width;
-        this.height = height;
+    public GameObject(String[] files, int width, int height) {
+        this.original = new BufferedImage[files.length];    
+        this.image = new Image[files.length];
+        
+        for(int i = 0; i < files.length; i++)
+            try {
+                this.original[i] = ImageIO.read(new File(files[i]));
+            } catch (IOException e) {
+                System.out.println("Error while opening file " + i + " : " + e);
+            }
 
-        init();
+        setScale(width, height);
+        this.visible = true;
     }
 
-    public void init() {
-        this.dst = this.circle;
+    public GameObject(GameObject copy) {
+        this.image = copy.image;
+        this.original = copy.original;
 
-        this.onHoverEnter = ui -> { };
-        this.onHoverExit = ui -> { };
-        this.onMouseClicked = ui -> { };
+        this.width = copy.width;
+        this.height = copy.height;
+
+        this.posX = copy.posX;
+        this.posY = copy.posY;
+
+        this.zIndex = copy.zIndex;
+        this.renderIndex = copy.renderIndex;
+        this.visible = copy.visible;
     }
 
     public void setPosition(int x, int y) {
@@ -82,73 +91,48 @@ public class GameObject {
         this.posY += y;
     }
 
-    public boolean scale(int width, int height) {
-        if(width == this.width && height == this.height) return false;
+    public void setScale(int width, int height) {
+        this.height = height;
+        this.width = width;
 
-        BufferedImage originalImage;
-        try {
-            originalImage = ImageIO.read(this.file);
-            this.image = originalImage.getScaledInstance(width, height, Image.SCALE_SMOOTH);
-            this.height = height;
-            this.width = width;
-        } catch (IOException e) {
-            System.out.println("error while resizing image : " + e);
+        for(int i = 0; i < this.original.length; i++) {
+            this.image[i] = this.original[i].getScaledInstance(width, height, Image.SCALE_SMOOTH);
         }
-
-        return true;
     }
 
-    private Distance circle = new Distance() {
-        public boolean isOn(Point p) {
-            return distanceFrom(p) < width/2;
+    public void scale(int width, int height) {
+        width = this.width + width;
+        height = this.height + height;
+        for(int i = 0; i < this.original.length; i++) {
+            this.image[i] = this.original[i].getScaledInstance(width, height, Image.SCALE_SMOOTH);
         }
-        public double distanceFrom(Point p) {
-            Point pos = new Point();
-            pos.setLocation(getCenterX(), getCenterY());
-            return pos.distance(p);
-        }
-    };
-    private Distance square = new Distance() {
-        public boolean isOn(Point p) {
-            return p.getX() < getCenterX()+width/2 && p.getX() > getCenterX()-width/2 &&
-                p.getY() < getCenterY()+height/2 && p.getY() > getCenterY()-height/2;
-        }
-        public double distanceFrom(Point p) {
-            if(isOn(p)) return 0;
-            Point pos = new Point();
-            pos.setLocation(getCenterX(), getCenterY());
-            return pos.distance(p);
-        }
-    };
 
-    public void setDistanceToSquare() { this.dst = square; }
-    public void setDistanceToCircle() { this.dst = circle; }
+        this.height = height;
+        this.width = width;
+    }
 
-    public boolean isOn(Point p) { return dst.isOn(p); }
-    public double distanceFrom(Point p) { return dst.distanceFrom(p); }
+    public void mix(Image img) {
+        BufferedImage res = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D dis = res.createGraphics();
 
-    public void setOnHoverEnterAction(Action action) { this.onHoverEnter = action; }
-    public void setOnHoverExitAction(Action action) { this.onHoverExit = action; }
-    public void setOnMouseClickedAction(Action action) { this.onMouseClicked = action; }
+        dis.drawImage(image[0], 0, 0, null);
+        dis.drawImage(img, width/2-img.getWidth(null)/2, height/2-img.getHeight(null)/2, null);
+        dis.dispose();
 
-    public void onHoverEnter(UI ui) { onHoverEnter.execute(ui); }
-    public void onHoverExit(UI ui) { onHoverExit.execute(ui); }
-    public void onMouseClicked(UI ui) { onMouseClicked.execute(ui); }
-
-    public void setHover(boolean v) { this.isHover = v; }
-    public boolean isHover() { return isHover; }
+        image[0] = (Image)res;
+        original[0] = res;
+    }
 
     public void setVisible(boolean v) { this.visible = v; }
     public boolean isVisible() { return this.visible; }
 
-    public void setInteractable(boolean v) { interactable = v; }
-    public boolean isInteractable() { return interactable; }
+    public boolean isInteractable() { return false; }
 
-    public void setZindex(int z) { z_index = z; }
-    public int getZindex() { return z_index; }
+    public void setZindex(int z) { zIndex = z; }
+    public int getZindex() { return zIndex; }
 
-    public int getPosX() { return this.posX - width/2; }
-    public int getPosY() { return this.posY - height/2; }
+    public int getPosX() { return this.posX - this.width/2; }
+    public int getPosY() { return this.posY - this.height/2; }
 
     public int getCenterX() { return posX; }
     public int getCenterY() { return posY; }
@@ -156,11 +140,21 @@ public class GameObject {
     public int getWidth() { return width; }
     public int getHeight() { return height; }
 
-    public Image getImage() { return this.image; }
-    public void setImage(Image img) { this.image = img; }
-}
+    public void nextImage() { renderIndex = (renderIndex > image.length-2)?0:renderIndex+1; }
+    public void setImage(int i) { renderIndex = i; }
+    public int getRenderIndex() { return renderIndex; }
 
-interface Distance {
-    public boolean isOn(Point p);
-    public double distanceFrom(Point p);
+    public BufferedImage[] getFiles() { return this.original; }
+ 
+    public Image getImage() { return this.image[renderIndex]; }
+    public void setImage(Image img) { this.image[renderIndex] = img; }
+    public void setImage(Image[] img, BufferedImage[] originals) { this.image = img.clone(); this.original = originals.clone(); }
+    public Image getImage(int i) { 
+        if(i > image.length - 1) return null;
+        return this.image[i]; 
+    }
+    public void setImage(Image img, int i) { 
+        if(i < image.length - 1)
+            this.image[i] = img; 
+    }
 }
