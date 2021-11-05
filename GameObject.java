@@ -119,7 +119,8 @@ public class GameObject {
         dis.drawImage(img, width/2-img.getWidth(null)/2, height/2-img.getHeight(null)/2, null);
         dis.dispose();
 
-        image[0] = res.getScaledInstance(width, height, Image.SCALE_SMOOTH);
+        image[0] = (Image)res;
+        original[0] = res;
     }
 
     public void setVisible(boolean v) { this.visible = v; }

@@ -10,8 +10,8 @@ public class UI extends Canvas {
 
     private Frame f;
 
-    private static final int WIDTH = 720;
-    private static final int HEIGHT = 480;
+    private final int WIDTH;
+    private final int HEIGHT;
 
     private int width;
     private int height;
@@ -23,9 +23,12 @@ public class UI extends Canvas {
 
     private List<Event> events;
 
-    public UI () {
-        width = WIDTH;
-        height = HEIGHT;
+    public UI (int width, int height) {
+        this.WIDTH = width;
+        this.HEIGHT = height;
+
+        this.width = width;
+        this.height = height;
 
         setBackground (Color.CYAN);    
         setSize(WIDTH, HEIGHT); 

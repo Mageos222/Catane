@@ -9,19 +9,21 @@ public class Game {
     private int turn;
 
     private Map map;
+    private int size;
     private UI ui;
 
     private static GameObject tower;
     
     private boolean addObject = false;
 
-    public Game(Player[] players) {
+    public Game(Player[] players, int size) {
         this.players = players;
 
         this.turn = 0;
-        this.map = new Map();
+        this.size = size;
+        this.map = new Map(size);
 
-        ui = new UI();
+        ui = new UI(1920, 1080);
 
         String[] towers = {"Images/townRed.png","Images/townBlue.png", "Images/townGreen.png", "Images/townYellow.png"};
         tower = new GameObject(towers, 40, 40);
@@ -34,9 +36,16 @@ public class Game {
         forest.setPosition(-44, -75);
         ui.add(forest);*/
 
+        int tileSize = 175;
+        int xOffset = (int)(0.5f*tileSize);
+        int yOffset = (int)(0.74f*tileSize);
+
         for(Tiles tile : map.getMap()) {
             GameObject obj = tile.getObject();
             obj.setZindex(1);
+
+            obj.setScale(tileSize, tileSize);
+            obj.setPosition(obj.getCenterX()*xOffset, obj.getCenterY()*yOffset);
 
             //obj.setOnHoverEnterAction(i -> i.focus(obj));
             //obj.setOnHoverExitAction(i -> i.unfocus(obj));
@@ -44,50 +53,29 @@ public class Game {
             ui.add(tile.getObject());
         }
 
-        for(int x = 0; x < 11; x++) {
-            for(int y = 0; y < 6; y++) {
-                if((y==0||y==5)&&(x<2||x>8)||(y==1||y==4)&&(x==0||x==10)) continue;
-                
-                String[] houses = {"Images/villageRed.png", "Images/villageBlue.png", "Images/villageGreen.png", "Images/villageYellow.png"};
-                Interactable empty = new Interactable(houses, 40, 40);
-                empty.setPosition(-49*(5-x), -75*(3-y)+(2*(y%2)-1)*10*((x%2)-((x+1)%2))+30);
-                empty.setZindex(4);
-                empty.setVisible(false);
+        int yShift = (int)(0.1f*tileSize);
+        int roadType = 1;
 
-                empty.setOnHoverEnterAction(() -> snap(empty));
-                empty.setOnHoverExitAction(() -> unsnap(empty));
-                empty.setOnMouseClickedAction(() -> addNewObject(empty, true, true));
-                ui.add(empty);
+        for(int y = 1; y <= size; y++) {
+            for(int x = -2*size+y; x <= 2*size-y; x++) {
+                addEmptyVillage(x*xOffset, (int)((y-0.5f)*yOffset-yShift));
+                addEmptyVillage(x*xOffset, -(int)((y-0.5f)*yOffset-yShift));
+                yShift = -yShift;
 
-                if(x < 8 || ((y == 1 || y == 4) && x < 9) || ((y == 2 || y == 3) && x < 10)) {
-                    String[] img = {"Images/RoadRightRed.png", "Images/RoadLeftRed.png" };
-                    Interactable emptyRoad = new Interactable(img[Math.abs(x%2-y%2)], 60, 60);
-                    emptyRoad.setPosition(-49*(5-x)+25, -75*(3-y)+38);
-                    emptyRoad.setVisible(false);
-                    emptyRoad.setZindex(3);
-
-                    emptyRoad.setOnHoverEnterAction(() -> snap(emptyRoad));
-                    emptyRoad.setOnHoverExitAction(() -> unsnap(emptyRoad));
-                    emptyRoad.setOnMouseClickedAction(() -> addNewObject(emptyRoad, false, false));
-                    ui.add(emptyRoad);
+                if(x != 2*size-y) {
+                    addEmptyRoad(x*xOffset+xOffset/2, (int)((y-0.5f)*yOffset), roadType);
+                    addEmptyRoad(x*xOffset+xOffset/2, -(int)((y-0.5f)*yOffset), (roadType+1)%2);
                 }
-
-                if(x%2-(y+1)%2==0) {
-                    Interactable emptyRoad2 = new Interactable("Images/RoadRed.png", 60, 60);
-                    emptyRoad2.setPosition(-49*(5-x), -75*(3-y));
-                    emptyRoad2.setZindex(3);
-                    emptyRoad2.setVisible(false);
-
-                    emptyRoad2.setOnHoverEnterAction(() -> snap(emptyRoad2));
-                    emptyRoad2.setOnHoverExitAction(() -> unsnap(emptyRoad2));
-                    emptyRoad2.setOnMouseClickedAction(() -> addNewObject(emptyRoad2, false, false));
-                    ui.add(emptyRoad2);
-                }
+                if(roadType == 0 && y != size) addEmptyRoad(x*xOffset, (int)((y-0.5f)*yOffset)+yOffset/2, 2);
+                else if(roadType == 1) addEmptyRoad(x*xOffset, -(int)((y-0.5f)*yOffset)+yOffset/2, 2);
+                roadType = (roadType+1)%2;
             }
+            yShift = -yShift;
+            roadType = 1;
         }
 
-        Interactable button = new Interactable("Images/button.png", 150, 50);
-        button.setPosition(250, 200);
+        Interactable button = new Interactable("Images/button.png", 300, 100);
+        button.setPosition(700, 400);
         button.setZindex(2);
 
         button.setOnHoverEnterAction(() -> focus(button, 20));
@@ -121,8 +109,35 @@ public class Game {
         }
     }
 
+    public void addEmptyVillage(int x, int y) {
+        String[] houses = {"Images/villageRed.png", "Images/villageBlue.png", "Images/villageGreen.png", "Images/villageYellow.png"};
+        Interactable empty = new Interactable(houses, 70, 70);
+        empty.setPosition(x, y);
+        empty.setZindex(4);
+        empty.setVisible(false);
+
+        empty.setOnHoverEnterAction(() -> snap(empty));
+        empty.setOnHoverExitAction(() -> unsnap(empty));
+        empty.setOnMouseClickedAction(() -> addNewObject(empty, true, true));
+        ui.add(empty);
+    }
+
+    public void addEmptyRoad(int x, int y, int i) {
+        String[] img = {"Images/RoadRightRed.png", "Images/RoadLeftRed.png", "Images/RoadRed.png" };
+        
+        Interactable emptyRoad = new Interactable(img[i], 90, 90);
+        emptyRoad.setPosition(x, y);
+        emptyRoad.setVisible(false);
+        emptyRoad.setZindex(3);
+
+        emptyRoad.setOnHoverEnterAction(() -> snap(emptyRoad));
+        emptyRoad.setOnHoverExitAction(() -> unsnap(emptyRoad));
+        emptyRoad.setOnMouseClickedAction(() -> addNewObject(emptyRoad, false, false));
+        ui.add(emptyRoad);
+    }
+
     public static void main(String[] args) {
-        Game game = new Game(new Player[] { new Player("Moi", false)});
+        Game game = new Game(new Player[] { new Player("Moi", false)}, 3);
         game.startGame();
     }
 
