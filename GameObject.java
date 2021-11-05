@@ -7,7 +7,7 @@ import javax.imageio.ImageIO;
 
 public class GameObject {
     private Image[] image;
-    private File[] file;
+    private BufferedImage[] original;
 
     private int width;
     private int height;
@@ -15,70 +15,70 @@ public class GameObject {
     private int posX;
     private int posY;
 
-    private int z_index = 0;
     private int renderIndex = 0;
 
-    private boolean interactable = false;
-
-    private boolean isHover;
+    private int zIndex = 0;
     private boolean visible;
 
-    private Action onHoverEnter;
-    private Action onHoverExit;
-    private Action onMouseClicked;
-
-    private Distance dst;
-
     public GameObject(String file, int width, int height) {    
-        this.file = new File[1];    
+        this.original = new BufferedImage[1];    
         this.image = new Image[1];
-        this.file[0] = new File(file);
+        try {
+            this.original[0] = ImageIO.read(new File(file));
+        } catch (IOException e) {
+            System.out.println("Error while opening file : " + e);
+        }
 
         this.visible = true;
-        scale(width, height);
-
-        init();
+        setScale(width, height);
     }
 
     public GameObject(String file) {
-        this.file = new File[1];    
+        this.original = new BufferedImage[1];    
         this.image = new Image[1];
-        this.file[0] = new File(file);
-        try {
-            BufferedImage original = ImageIO.read(this.file[0]);
-            this.width = original.getWidth();
-            this.height = original.getHeight();
 
-            this.image[0] = ImageIO.read(this.file[0]);
+        try {
+            original[0] = ImageIO.read(new File(file));
+            this.width = original[0].getWidth();
+            this.height = original[0].getHeight();
+
+            this.image[0] = ImageIO.read(new File(file));
         }
         catch(IOException e) {
             System.out.println("Error while opening file : " + e);
         }
 
         this.visible = true;
-
-        init();
     }
 
     public GameObject(String[] files, int width, int height) {
-        this.file = new File[files.length];    
+        this.original = new BufferedImage[files.length];    
         this.image = new Image[files.length];
         
-        for(int i = 0; i < files.length; i++) 
-            this.file[i] = new File(files[i]);
+        for(int i = 0; i < files.length; i++)
+            try {
+                this.original[i] = ImageIO.read(new File(files[i]));
+            } catch (IOException e) {
+                System.out.println("Error while opening file " + i + " : " + e);
+            }
 
-        scale(width, height);
+        setScale(width, height);
         this.visible = true;
-
-        init();
     }
 
-    public void init() {
-        this.dst = this.circle;
+    public GameObject(GameObject copy) {
+        this.image = copy.image;
+        this.original = copy.original;
 
-        this.onHoverEnter = ui -> { };
-        this.onHoverExit = ui -> { };
-        this.onMouseClicked = ui -> { };
+        this.width = copy.width;
+        this.height = copy.height;
+
+        this.posX = copy.posX;
+        this.posY = copy.posY;
+
+        this.zIndex = copy.zIndex;
+        this.renderIndex = copy.renderIndex;
+        this.visible = copy.visible;
     }
 
     public void setPosition(int x, int y) {
@@ -91,14 +91,20 @@ public class GameObject {
         this.posY += y;
     }
 
+    public void setScale(int width, int height) {
+        this.height = height;
+        this.width = width;
+
+        for(int i = 0; i < this.original.length; i++) {
+            this.image[i] = this.original[i].getScaledInstance(width, height, Image.SCALE_SMOOTH);
+        }
+    }
+
     public void scale(int width, int height) {
-        for(int i = 0; i < this.file.length; i++) {
-            try {
-                BufferedImage originalImage = ImageIO.read(this.file[i]);
-                this.image[i] = originalImage.getScaledInstance(width, height, Image.SCALE_SMOOTH);
-            } catch (IOException e) {
-                System.out.println("error while resizing image at " + i + " : " + e);
-            }
+        width = this.width + width;
+        height = this.height + height;
+        for(int i = 0; i < this.original.length; i++) {
+            this.image[i] = this.original[i].getScaledInstance(width, height, Image.SCALE_SMOOTH);
         }
 
         this.height = height;
@@ -116,57 +122,16 @@ public class GameObject {
         image[0] = res.getScaledInstance(width, height, Image.SCALE_SMOOTH);
     }
 
-    private Distance circle = new Distance() {
-        public boolean isOn(Point p) {
-            return distanceFrom(p) < width/2;
-        }
-        public double distanceFrom(Point p) {
-            Point pos = new Point();
-            pos.setLocation(getCenterX(), getCenterY());
-            return pos.distance(p);
-        }
-    };
-    private Distance square = new Distance() {
-        public boolean isOn(Point p) {
-            return p.getX() < getCenterX()+width/2 && p.getX() > getCenterX()-width/2 &&
-                p.getY() < getCenterY()+height/2 && p.getY() > getCenterY()-height/2;
-        }
-        public double distanceFrom(Point p) {
-            if(isOn(p)) return 0;
-            Point pos = new Point();
-            pos.setLocation(getCenterX(), getCenterY());
-            return pos.distance(p);
-        }
-    };
-
-    public void setDistanceToSquare() { this.dst = square; }
-    public void setDistanceToCircle() { this.dst = circle; }
-
-    public boolean isOn(Point p) { return dst.isOn(p); }
-    public double distanceFrom(Point p) { return dst.distanceFrom(p); }
-
-    public void setOnHoverEnterAction(Action action) { this.onHoverEnter = action; }
-    public void setOnHoverExitAction(Action action) { this.onHoverExit = action; }
-    public void setOnMouseClickedAction(Action action) { this.onMouseClicked = action; }
-
-    public void onHoverEnter(UI ui) { onHoverEnter.execute(ui); }
-    public void onHoverExit(UI ui) { onHoverExit.execute(ui); }
-    public void onMouseClicked(UI ui) { onMouseClicked.execute(ui); }
-
-    public void setHover(boolean v) { this.isHover = v; }
-    public boolean isHover() { return isHover; }
-
     public void setVisible(boolean v) { this.visible = v; }
     public boolean isVisible() { return this.visible; }
 
-    public void setInteractable(boolean v) { interactable = v; }
-    public boolean isInteractable() { return interactable; }
+    public boolean isInteractable() { return false; }
 
-    public void setZindex(int z) { z_index = z; }
-    public int getZindex() { return z_index; }
+    public void setZindex(int z) { zIndex = z; }
+    public int getZindex() { return zIndex; }
 
-    public int getPosX() { return this.posX - width/2; }
-    public int getPosY() { return this.posY - height/2; }
+    public int getPosX() { return this.posX - this.width/2; }
+    public int getPosY() { return this.posY - this.height/2; }
 
     public int getCenterX() { return posX; }
     public int getCenterY() { return posY; }
@@ -178,11 +143,11 @@ public class GameObject {
     public void setImage(int i) { renderIndex = i; }
     public int getRenderIndex() { return renderIndex; }
 
-    public File[] getFiles() { return this.file; }
+    public BufferedImage[] getFiles() { return this.original; }
  
     public Image getImage() { return this.image[renderIndex]; }
     public void setImage(Image img) { this.image[renderIndex] = img; }
-    public void setImage(Image[] img, File[] files) { this.image = img.clone(); this.file = files.clone(); }
+    public void setImage(Image[] img, BufferedImage[] originals) { this.image = img.clone(); this.original = originals.clone(); }
     public Image getImage(int i) { 
         if(i > image.length - 1) return null;
         return this.image[i]; 
@@ -191,9 +156,4 @@ public class GameObject {
         if(i < image.length - 1)
             this.image[i] = img; 
     }
-}
-
-interface Distance {
-    public boolean isOn(Point p);
-    public double distanceFrom(Point p);
 }

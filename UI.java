@@ -3,24 +3,30 @@ import java.util.List;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.awt.event.*; 
 
 public class UI extends Canvas {
-    
-    private static Frame f;
+    public enum Event { MOUSE_LEFT_CLICK, MOUSE_RIGHT_CLICK } 
 
-    private static int WIDTH = 720;
-    private static int HEIGHT = 480;
+    private Frame f;
 
-    List<GameObject> gameObjects;
-    private boolean addObject;
+    private static final int WIDTH = 720;
+    private static final int HEIGHT = 480;
 
-    private static GameObject tower;
+    private int width;
+    private int height;
+
+    private transient List<GameObject> gameObjects;
 
     private boolean mouseClicked = false;
+    private boolean rescale = false;
+
+    private List<Event> events;
 
     public UI () {
+        width = WIDTH;
+        height = HEIGHT;
+
         setBackground (Color.CYAN);    
         setSize(WIDTH, HEIGHT); 
 
@@ -33,76 +39,111 @@ public class UI extends Canvas {
         
         gameObjects = new ArrayList<>();
 
-        GameObject background = new GameObject("Images/Water.png", WIDTH, HEIGHT);
-        background.setPosition(0, 0);
-        add(background);
+        this.events = new ArrayList<>();
         
-        // Close event
         f.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent we) {
                 f.dispose();
             }
         });
+
+        f.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent componentEvent) {
+                rescale = true;
+            }
+        });
+        
         addMouseListener(new MouseListener() {
             public void mouseClicked(MouseEvent e) {  
-                if(e.getButton() == 1) 
+                if(e.getButton() == 1) {
                     mouseClicked = true;
-                else if(e.getButton() == 3) {
-                    addObject = false;
-                    f.setCursor(Cursor.DEFAULT_CURSOR);
+                    if(!events.contains(Event.MOUSE_LEFT_CLICK))
+                        events.add(Event.MOUSE_LEFT_CLICK);
                 }
+                else if(e.getButton() == 3 && !events.contains(Event.MOUSE_RIGHT_CLICK)) 
+                    events.add(Event.MOUSE_RIGHT_CLICK);
             }  
-            public void mouseEntered(MouseEvent e) { }  
-            public void mouseExited(MouseEvent e) { }  
-            public void mousePressed(MouseEvent e) { }  
-            public void mouseReleased(MouseEvent e) { } 
+            public void mouseEntered(MouseEvent e) { /* not used */ }  
+            public void mouseExited(MouseEvent e) { /* not used */ }  
+            public void mousePressed(MouseEvent e) { 
+                if(e.getButton() == 1) {
+                    mouseClicked = true;
+                    if(!events.contains(Event.MOUSE_LEFT_CLICK))
+                        events.add(Event.MOUSE_LEFT_CLICK);
+                }
+                else if(e.getButton() == 3 && !events.contains(Event.MOUSE_RIGHT_CLICK))
+                    events.add(Event.MOUSE_RIGHT_CLICK);
+            }  
+            public void mouseReleased(MouseEvent e) { /* not used */ } 
         });  
-
-        String[] towers = {"Images/townRed.png","Images/townBlue.png", "Images/townGreen.png", "Images/townYellow.png"};
-        tower = new GameObject(towers, 40, 40);
 
         System.out.println("Ready");
         
     }
+    
+    public void setBackground(String file) {
+        GameObject background = new GameObject(file, WIDTH, HEIGHT);
+        background.setPosition(0, 0);
+        add(background);
+    }
 
-    public void analyse() {
+    public List<Event> nextFrame() {
         Point mousePos = getRelativPosition(MouseInfo.getPointerInfo().getLocation());
+        mousePos.setLocation(mousePos.getX(), mousePos.getY());
 
-        GameObject res = null;
+        if(rescale) rescale();
+        checkCollision(mousePos);
 
-        for(GameObject obj : gameObjects) {
-            if(!obj.isInteractable()) continue;
+        repaint();
+        
+        mouseClicked = false;
 
-            if(obj.isOn(mousePos)) {
-                if(res == null) res = obj;
-                else {
-                    if(obj.distanceFrom(mousePos) < res.distanceFrom(mousePos)) {
-                        if(res.isHover()) res.onHoverExit(this);
-                        res = obj;
-                    }
-                    else if(obj.isHover()) obj.onHoverExit(this);
-                }
-            }
-            if(obj.isHover()) obj.onHoverExit(this);
+        List<Event> ret = new ArrayList<>(events);
+        events.clear();
+
+        return ret;
+    }
+
+    public void checkCollision(Point mousePos) {
+        Interactable res = null;
+
+        for(GameObject object : gameObjects) {
+            if(!object.isInteractable()) continue;
+            Interactable obj = (Interactable)object;
+
+            if(obj.isOn(mousePos) && (res == null || obj.distanceFrom(mousePos) < res.distanceFrom(mousePos))) 
+                res = obj;
+            if(obj.isHover()) obj.onHoverExit();
         }
 
         if(res != null) {
-            if(!res.isHover()) res.onHoverEnter(this);
-            if(mouseClicked) res.onMouseClicked(this);
+            if(!res.isHover()) res.onHoverEnter();
+            if(mouseClicked) res.onMouseClicked();
         } 
-
-        repaint();
-        mouseClicked = false;
-
-        //System.out.println(mousePos.toString());
     }
 
+    public void rescale() {
+        setSize(f.getWidth(), f.getHeight()); 
+
+        width = f.getWidth();
+        height = f.getHeight();
+
+        rescale = false;
+    }
+ 
     public Point getRelativPosition(Point p) {
         Point r = p;
-        r.setLocation(p.getX() - f.getX(), p.getY() - f.getY());
+        r.setLocation((p.getX() - f.getX() - width/2f)*((float)WIDTH/width), (p.getY() - f.getY() - height/2f)*((float)HEIGHT/height));
 
         return r;
+    }
+
+    public Point getCenterPosition(int x, int y) {
+        Point p = new Point();
+        p.setLocation(x+WIDTH/2, y+HEIGHT/2);
+        return p;
     }
     
     public boolean isActive() {
@@ -110,7 +151,6 @@ public class UI extends Canvas {
     }
 
     public void add(GameObject gameObject) {
-        gameObject.translate(WIDTH/2, HEIGHT/2);
         this.gameObjects.add(gameObject);
     }
 
@@ -118,6 +158,7 @@ public class UI extends Canvas {
     public void update(Graphics g) {
         BufferedImage frame = new BufferedImage(WIDTH,HEIGHT, BufferedImage.TYPE_INT_ARGB);
         Graphics2D dis = frame.createGraphics();
+        dis.setBackground(Color.blue);
 
         List<GameObject> renderQueu = new ArrayList<>(gameObjects);
 
@@ -131,7 +172,8 @@ public class UI extends Canvas {
                     continue;
                 }
                 if(gameObject.getZindex() == index) {
-                    dis.drawImage(gameObject.getImage(), gameObject.getPosX(), gameObject.getPosY(), this);
+                    Point pos = getCenterPosition(gameObject.getPosX(), gameObject.getPosY());
+                    dis.drawImage(gameObject.getImage(), (int)pos.getX(), (int)pos.getY(), this);
                     renderQueu.remove(i);
                 }
                 else i++;
@@ -139,83 +181,14 @@ public class UI extends Canvas {
             index++;
         }
 
-        g.drawImage(frame, 0, 0, WIDTH, HEIGHT, this);
+        Image res = frame.getScaledInstance(f.getWidth(), f.getHeight(), Image.SCALE_SMOOTH);
 
-        //System.out.println("Updated");
+        g.drawImage(res, 0, 0, width, height, this);
     }
 
     public void windowClosing (WindowEvent e) {  
         f.dispose();    
     }   
 
-    public void setNewObject(GameObject object) {
-        addObject = true;
-        f.setCursor(Cursor.HAND_CURSOR);
-    }
-
-    public void addNewObject(GameObject object, boolean isUpdatable) {
-        if(!object.isHover()) return;
-        object.setHover(false);
-        addObject = false;
-
-        if(isUpdatable) {
-            Image[] newSprite = {object.getImage(), tower.getImage(object.getRenderIndex())};
-            File[] files = {object.getFiles()[object.getRenderIndex()], tower.getFiles()[object.getRenderIndex()]};
-            object.setImage(newSprite, files);
-
-            object.setOnHoverEnterAction(i -> i.snapUpdate(object));
-            object.setOnHoverExitAction(i -> i.unsnapUpdate(object));
-            object.setOnMouseClickedAction(i -> i.addNewObject(object, false));
-        }
-        else {
-            object.setOnHoverEnterAction(i -> { });
-            object.setOnHoverExitAction(i -> { });
-            object.setOnMouseClickedAction(i -> { });
-        }
-
-        f.setCursor(Cursor.DEFAULT_CURSOR);
-    }
-
-    public void focus(GameObject object, int size) {
-        object.scale(object.getWidth() + size, object.getHeight() + size);
-        object.setHover(true);
-        object.setZindex(object.getZindex()+5);
-    }
-
-    public void unfocus(GameObject object, int size) {
-        object.scale(object.getWidth() - size, object.getHeight() - size);
-        object.setHover(false);
-        object.setZindex(object.getZindex()-5);
-    } 
-
-    public void snap(GameObject object) {
-        if(!addObject) return;
-        object.setHover(true);
-
-        object.setVisible(true);
-    }
-
-    public void unsnap(GameObject object) {
-        object.setVisible(false);
-        object.setHover(false);
-    }
-
-    public void snapUpdate(GameObject object) {
-        if(!addObject) {
-            focus(object, 10);
-            return; 
-        }
-        object.setHover(true);
-        object.scale(50, 50);
-
-        object.nextImage();
-    }
-
-    public void unsnapUpdate(GameObject object) {
-        if(!addObject) unfocus(object, 10);
-        object.setHover(false);
-        object.scale(40, 40);
-
-        object.setImage(0);
-    }
+    public void setCursor(int cursor) { f.setCursor(cursor);}
 }
