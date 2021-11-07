@@ -1,3 +1,5 @@
+import GameEngine.GameObject;
+
 public class Colony {
     private static String[] files = {
         "Images/HouseRed.png",
