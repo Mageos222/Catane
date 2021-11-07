@@ -1,3 +1,5 @@
+package GameEngine;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,22 +20,19 @@ public class UI extends Canvas {
     private final int HEIGHT;
     private final double RATIO;
 
-    private int width;
-    private int height;
+    private int screenWidth;
+    private int screenHeight;
 
     private transient List<GameObject> gameObjects;
 
     private boolean mouseClicked = false;
     private boolean rescale = false;
-    private boolean isRescale = true;
+    private boolean isRescaled = true;
 
     private List<Event> events;
 
-    private BufferedImage background;
+    private transient BufferedImage backgroundImg;
 
-    private GameObject test;
-
-    private FPSCounter fpsCounter;
     private int nbFrame = 0;
 
     public UI (int width, int height) {
@@ -41,8 +40,8 @@ public class UI extends Canvas {
         this.HEIGHT = height;
         this.RATIO = (double)WIDTH/HEIGHT;
 
-        this.width = width;
-        this.height = height;
+        this.screenWidth = width;
+        this.screenHeight = height;
 
         setBackground (Color.CYAN);    
         setSize(WIDTH, HEIGHT); 
@@ -60,9 +59,7 @@ public class UI extends Canvas {
         
         f.addWindowListener(new WindowAdapter() {
             @Override
-            public void windowClosing(WindowEvent we) {
-                stopThreads();
-                
+            public void windowClosing(WindowEvent we) {                
                 f.dispose();
             }
         });
@@ -97,20 +94,11 @@ public class UI extends Canvas {
             }  
             public void mouseReleased(MouseEvent e) { /* not used */ } 
         });  
-
-        fpsCounter = new FPSCounter(this);
-        fpsCounter.start();
-
-        /*test = new GameObject("Images/villageBlue.png", 100, 100);
-        test.setZindex(10);
-        add(test);*/
-
-        System.out.println("Ready");
     }
     
     public void setBackground(String file) {
         try {
-            this.background = ImageIO.read(new File(file));
+            this.backgroundImg = ImageIO.read(new File(file));
         } catch (IOException e) {
             System.out.println("Error while opening file : " + e);
         }
@@ -123,9 +111,6 @@ public class UI extends Canvas {
         mouseClicked = false;
         nbFrame++;
 
-        //Point mousePos = getRelativPosition(MouseInfo.getPointerInfo().getLocation());
-        //test.setPosition((int)mousePos.getX(), (int)mousePos.getY());
-
         draw(getGraphics());
 
         List<Event> ret = new ArrayList<>(events);
@@ -135,14 +120,13 @@ public class UI extends Canvas {
     }
 
     public void checkCollision() {
-        Interactable res = null;
+        Collider res = null;
 
         Point mousePos = getRelativPosition(MouseInfo.getPointerInfo().getLocation());
-        //System.out.println(mousePos.toString());
 
         for(GameObject object : gameObjects) {
-            if(!object.isInteractable()) continue;
-            Interactable obj = (Interactable)object;
+            if(object.collider() == null) continue;
+            Collider obj = object.collider();
 
             if(obj.isOn(mousePos) && (res == null || obj.distanceFrom(mousePos) < res.distanceFrom(mousePos))) 
                 res = obj;
@@ -158,11 +142,11 @@ public class UI extends Canvas {
     public void rescale() {
         setSize(f.getWidth(), f.getHeight()); 
 
-        width = f.getWidth();
-        height = f.getHeight();
+        screenWidth = f.getWidth();
+        screenHeight = f.getHeight();
 
         rescale = false;
-        isRescale = true;
+        isRescaled = true;
     }
  
     public Point getRelativPosition(Point p) {
@@ -186,13 +170,13 @@ public class UI extends Canvas {
     }
 
     public void draw(Graphics g) {
-        if(isRescale) rescaleObjects();
+        if(isRescaled) rescaleObjects();
 
-        BufferedImage frame = new BufferedImage(width,height, BufferedImage.TYPE_INT_ARGB);
+        BufferedImage frame = new BufferedImage(screenWidth,screenHeight, BufferedImage.TYPE_INT_ARGB);
         Graphics2D display = frame.createGraphics();
 
-        if(background != null) 
-            display.drawImage(background, 0, 0, width, height, this);
+        if(backgroundImg != null) 
+            display.drawImage(backgroundImg, 0, 0, screenWidth, screenHeight, this);
 
         List<GameObject> renderQueu = new ArrayList<>(gameObjects);       
         int index = 0;
@@ -200,13 +184,15 @@ public class UI extends Canvas {
             int i = 0;
             while(i < renderQueu.size()) {
                 GameObject gameObject = renderQueu.get(i);
-                if(!gameObject.isVisible()) {
+                if(!gameObject.renderer().isVisible()) {
                     renderQueu.remove(i);
                     continue;
                 }
-                if(renderQueu.get(i).getZindex() == index) {
-                    display.drawImage(gameObject.getImage(), gameObject.getRelativPosX(), gameObject.getRelativPosY(), 
-                                            gameObject.getRelativWidth(), gameObject.getRelativHeight(),this);
+                if(renderQueu.get(i).renderer().getZindex() == index) {
+                    display.drawImage(gameObject.renderer().getImage(), gameObject.transform().getRelativCenterPosition().getX(), 
+                                                             gameObject.transform().getRelativCenterPosition().getY(), 
+                                                             gameObject.transform().getRelativSize().getX(), 
+                                                             gameObject.transform().getRelativSize().getY(),this);
 
                     renderQueu.remove(i);
                 }
@@ -215,58 +201,60 @@ public class UI extends Canvas {
             index++;
         }
 
-        g.drawImage(frame, 0, 0, width, height, this);
+        g.drawImage(frame, 0, 0, screenWidth, screenHeight, this);
         display.dispose();
     }
 
     private void rescaleObjects() {
-        double ratio = (double)width/height;
-        int scaledWidth = width;
-        int scaledHeight = height;
+        double ratio = (double)screenWidth/screenHeight;
+        int scaledWidth = screenWidth;
+        int scaledHeight = screenHeight;
 
         double r = 1;
         if(ratio > RATIO) {
-            scaledWidth = (int)(WIDTH*(double)height/HEIGHT);
-            r = (double)height/HEIGHT;
+            scaledWidth = (int)(WIDTH*(double)screenHeight/HEIGHT);
+            r = (double)screenHeight/HEIGHT;
         }
         else if(ratio < RATIO) {
-            scaledHeight = (int)(HEIGHT*(double)width/WIDTH);
-            r = (double)width/WIDTH;
+            scaledHeight = (int)(HEIGHT*(double)screenWidth/WIDTH);
+            r = (double)screenWidth/WIDTH;
         }
 
-        int sWidth = width-scaledWidth;
-        int sHeight = height-scaledHeight;
+        int sWidth = screenWidth-scaledWidth;
+        int sHeight = screenHeight-scaledHeight;
 
         int[] shiftX = { 0, (int)(sWidth/2f), sWidth};
         int[] shiftY = { 0, (int)(sHeight/2f), sHeight};
 
         for(GameObject gameObject : gameObjects) {
-            Point pos = getCenterPosition(gameObject.getPosX(), gameObject.getPosY());
+            Point pos = getCenterPosition(gameObject.transform().getPosition().getX(), gameObject.transform().getPosition().getY());
 
-            gameObject.scale(r);
-            gameObject.setRelativPosition((int)(pos.getX()*r+shiftX[gameObject.getAlign()%3]), 
-                                          (int)(pos.getY()*r+shiftY[gameObject.getAlign()/3]));
+            gameObject.transform().setRelativSize(r);
+            gameObject.transform().setRelativPosition((int)(pos.getX()*r+shiftX[gameObject.renderer().getAlign()%3]), 
+                                          (int)(pos.getY()*r+shiftY[gameObject.renderer().getAlign()/3]));
         }
 
-        isRescale = false;
+        isRescaled = false;
     }
 
     public void windowClosing (WindowEvent e) {  
         f.dispose();    
     }   
 
-    public void setCursor(int cursor) { f.setCursor(cursor);}
+    @Override
+    public void setCursor(Cursor cursor) { f.setCursor(cursor); }
     public void setDimension(int width, int height) { f.setSize(width, height);}
 
-    public int getWidth() { return this.width; }
-    public int getHeight() { return this.height; }
+    @Override
+    public int getWidth() { return this.screenWidth; }
+    @Override
+    public int getHeight() { return this.screenHeight; }
 
     public List<GameObject> getObjects() { return gameObjects; }
-    public BufferedImage getBackgroundImage() { return background; }
+    public BufferedImage getBackgroundImage() { return backgroundImg; }
 
-    public boolean isRescale() { return isRescale; }
-    public void setIsRescale(boolean v) { isRescale = v; }
+    public boolean isRescaled() { return isRescaled; }
+    public void setIsRescale(boolean v) { isRescaled = v; }
 
-    private void stopThreads() { fpsCounter.interrupt(); }
     public int getNbFrame() { return nbFrame; }
 }

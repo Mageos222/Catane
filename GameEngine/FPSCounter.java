@@ -1,3 +1,5 @@
+package GameEngine;
+
 public class FPSCounter extends Thread {
     private UI ui;
     private int frames;
@@ -12,6 +14,7 @@ public class FPSCounter extends Thread {
             try {
                 sleep(1000);
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 break;
             }
 
