@@ -24,6 +24,7 @@ public class Game {
         this.map = new Map(size);
 
         ui = new UI(1920, 1080);
+        ui.setDimension(720, 480);
 
         String[] towers = {"Images/townRed.png","Images/townBlue.png", "Images/townGreen.png", "Images/townYellow.png"};
         tower = new GameObject(towers, 40, 40);
@@ -52,6 +53,13 @@ public class Game {
 
             ui.add(tile.getObject());
         }
+
+        /*Interactable test = new Interactable("Images/Clay.png", 70, 70);
+        test.setZindex(10);
+        test.setPosition(100, 100);
+        test.setOnHoverEnterAction(() -> snap(test));
+        test.setOnHoverExitAction(() -> unsnap(test));
+        ui.add(test);*/
 
         int yShift = (int)(0.1f*tileSize);
         int roadType = 1;
@@ -83,11 +91,10 @@ public class Game {
         button.setOnMouseClickedAction(this::setNewObject);
 
         button.setDistanceToSquare();
+        button.setAlign(GameObject.Align.BottomRight);
         ui.add(button);
 
         ui.setBackground("Images/Water.png");
-
-        ui.repaint();
     }
 
     public void startGame() {
@@ -152,9 +159,8 @@ public class Game {
         addObject = false;
 
         if(isUpdatable) {
-            Image[] newSprite = {object.getImage(), tower.getImage(object.getRenderIndex())};
-            BufferedImage[] files = {object.getFiles()[object.getRenderIndex()], tower.getFiles()[object.getRenderIndex()]};
-            object.setImage(newSprite, files);
+            BufferedImage[] images = {object.getFiles()[object.getRenderIndex()], tower.getFiles()[object.getRenderIndex()]};
+            object.setImage(images);
 
             object.setOnHoverEnterAction(() -> snapUpdate(object));
             object.setOnHoverExitAction(() -> unsnapUpdate(object));

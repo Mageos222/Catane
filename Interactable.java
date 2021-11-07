@@ -35,23 +35,23 @@ public class Interactable extends GameObject {
 
     private Distance circle = new Distance() {
         public boolean isOn(Point p) {
-            return distanceFrom(p) < getWidth()/2;
+            return distanceFrom(p) < getRelativWidth()/2f;
         }
         public double distanceFrom(Point p) {
             Point pos = new Point();
-            pos.setLocation(getCenterX(), getCenterY());
+            pos.setLocation(getRelativCenterX(), getRelativCenterY());
             return pos.distance(p);
         }
     };
     private Distance square = new Distance() {
         public boolean isOn(Point p) {
-            return p.getX() < getCenterX()+getWidth()/2 && p.getX() > getCenterX()-getWidth()/2 &&
-                p.getY() < getCenterY()+getWidth()/2 && p.getY() > getCenterY()-getWidth()/2;
+            return p.getX() < getRelativCenterX()+getRelativWidth()/2f && p.getX() > getRelativCenterX()-getRelativWidth()/2f &&
+                p.getY() < getRelativCenterY()+getRelativHeight()/2f && p.getY() > getRelativCenterY()-getRelativHeight()/2f;
         }
         public double distanceFrom(Point p) {
             if(isOn(p)) return 0;
             Point pos = new Point();
-            pos.setLocation(getCenterX(), getCenterY());
+            pos.setLocation(getRelativCenterX(), getRelativCenterY());
             return pos.distance(p);
         }
     };
