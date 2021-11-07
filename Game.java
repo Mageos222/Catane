@@ -1,5 +1,15 @@
+import GameEngine.GameObject;
+import GameEngine.Vector2;
+import GameEngine.UI;
+import GameEngine.BoxCollider;
+import GameEngine.CircleCollider;
+import GameEngine.Renderer;
+import GameEngine.FPSCounter;
+import GameEngine.SpriteRenderer;
+
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
@@ -16,6 +26,8 @@ public class Game {
     
     private boolean addObject = false;
 
+    private FPSCounter fps;
+
     public Game(Player[] players, int size) {
         this.players = players;
 
@@ -24,6 +36,7 @@ public class Game {
         this.map = new Map(size);
 
         ui = new UI(1920, 1080);
+        ui.setDimension(720, 480);
 
         String[] towers = {"Images/townRed.png","Images/townBlue.png", "Images/townGreen.png", "Images/townYellow.png"};
         tower = new GameObject(towers, 40, 40);
@@ -42,16 +55,24 @@ public class Game {
 
         for(Tiles tile : map.getMap()) {
             GameObject obj = tile.getObject();
-            obj.setZindex(1);
+            obj.renderer().setZindex(1);
 
-            obj.setScale(tileSize, tileSize);
-            obj.setPosition(obj.getCenterX()*xOffset, obj.getCenterY()*yOffset);
+            obj.transform().setSize(tileSize, tileSize);
+            obj.transform().setPosition(Vector2.multiply(obj.transform().getPosition(), new Vector2(xOffset, yOffset)));
 
             //obj.setOnHoverEnterAction(i -> i.focus(obj));
             //obj.setOnHoverExitAction(i -> i.unfocus(obj));
 
             ui.add(tile.getObject());
         }
+
+        /*GameObject test = new GameObject("Images/Clay.png", 300, 300);
+        test.setZindex(10);
+        test.setPosition(100, 100);
+        test.addComponent(new CircleCollider(test));
+        test.getCollider().setOnHoverEnterAction(() -> System.out.println("hover"));
+        test.getCollider().setOnHoverExitAction(() -> System.out.println("exit"));
+        ui.add(test);*/
 
         int yShift = (int)(0.1f*tileSize);
         int roadType = 1;
@@ -74,30 +95,32 @@ public class Game {
             roadType = 1;
         }
 
-        Interactable button = new Interactable("Images/button.png", 300, 100);
-        button.setPosition(700, 400);
-        button.setZindex(2);
+        GameObject button = new GameObject("Images/button.png", 300, 100);
+        button.transform().setPosition(700, 400);
+        button.renderer().setZindex(2);
+        button.addComponent(new BoxCollider(button));
 
-        button.setOnHoverEnterAction(() -> focus(button, 20));
-        button.setOnHoverExitAction(() -> unfocus(button, 20));
-        button.setOnMouseClickedAction(this::setNewObject);
+        button.collider().setOnHoverEnterAction(() -> focus(button, 20));
+        button.collider().setOnHoverExitAction(() -> unfocus(button, 20));
+        button.collider().setOnMouseClickedAction(this::setNewObject);
 
-        button.setDistanceToSquare();
+        button.renderer().setAlign(Renderer.Align.BOTTOM_RIGHT);
         ui.add(button);
 
         ui.setBackground("Images/Water.png");
-
-        ui.repaint();
     }
 
     public void startGame() {
+        fps = new FPSCounter(ui);
+        fps.start();
+
         while(ui.isActive()) {
             List<UI.Event> events = ui.nextFrame();
 
             for(UI.Event event : events) {
                 if(event == UI.Event.MOUSE_RIGHT_CLICK) {
                     addObject = false;
-                    ui.setCursor(Cursor.DEFAULT_CURSOR);
+                    ui.setCursor(Cursor.getDefaultCursor());
                 }
             }
             
@@ -107,32 +130,37 @@ public class Game {
                 e.printStackTrace();
             }
         }
+
+        fps.interrupt();
     }
 
     public void addEmptyVillage(int x, int y) {
         String[] houses = {"Images/villageRed.png", "Images/villageBlue.png", "Images/villageGreen.png", "Images/villageYellow.png"};
-        Interactable empty = new Interactable(houses, 70, 70);
-        empty.setPosition(x, y);
-        empty.setZindex(4);
-        empty.setVisible(false);
+        GameObject empty = new GameObject(houses, 70, 70);
+        empty.transform().setPosition(x, y);
+        empty.renderer().setZindex(4);
+        empty.renderer().setVisible(false);
 
-        empty.setOnHoverEnterAction(() -> snap(empty));
-        empty.setOnHoverExitAction(() -> unsnap(empty));
-        empty.setOnMouseClickedAction(() -> addNewObject(empty, true, true));
+        empty.addComponent(new CircleCollider(empty));
+        empty.collider().setOnHoverEnterAction(() -> snap(empty));
+        empty.collider().setOnHoverExitAction(() -> unsnap(empty));
+        empty.collider().setOnMouseClickedAction(() -> addNewObject(empty, true, true));
         ui.add(empty);
     }
 
     public void addEmptyRoad(int x, int y, int i) {
         String[] img = {"Images/RoadRightRed.png", "Images/RoadLeftRed.png", "Images/RoadRed.png" };
         
-        Interactable emptyRoad = new Interactable(img[i], 90, 90);
-        emptyRoad.setPosition(x, y);
-        emptyRoad.setVisible(false);
-        emptyRoad.setZindex(3);
+        GameObject emptyRoad = new GameObject(img[i], 90, 90);
+        emptyRoad.transform().setPosition(x, y);
+        emptyRoad.renderer().setVisible(false);
+        emptyRoad.renderer().setZindex(3);
 
-        emptyRoad.setOnHoverEnterAction(() -> snap(emptyRoad));
-        emptyRoad.setOnHoverExitAction(() -> unsnap(emptyRoad));
-        emptyRoad.setOnMouseClickedAction(() -> addNewObject(emptyRoad, false, false));
+        emptyRoad.addComponent(new CircleCollider(emptyRoad));
+
+        emptyRoad.collider().setOnHoverEnterAction(() -> snap(emptyRoad));
+        emptyRoad.collider().setOnHoverExitAction(() -> unsnap(emptyRoad));
+        emptyRoad.collider().setOnMouseClickedAction(() -> addNewObject(emptyRoad, false, false));
         ui.add(emptyRoad);
     }
 
@@ -143,76 +171,76 @@ public class Game {
 
     public void setNewObject() {
         addObject = true;
-        ui.setCursor(Cursor.HAND_CURSOR);
+        ui.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
     }
 
-    public void addNewObject(Interactable object, boolean isUpdatable, boolean isFocusable) {
-        if(!object.isHover() || !addObject) return;
-        object.setHover(false);
+    public void addNewObject(GameObject object, boolean isUpdatable, boolean isFocusable) {
+        if(!object.collider().isHover() || !addObject) return;
+        object.collider().setHover(false);
         addObject = false;
 
         if(isUpdatable) {
-            Image[] newSprite = {object.getImage(), tower.getImage(object.getRenderIndex())};
-            BufferedImage[] files = {object.getFiles()[object.getRenderIndex()], tower.getFiles()[object.getRenderIndex()]};
-            object.setImage(newSprite, files);
+            BufferedImage[] images = {object.renderer().getImages()[object.renderer().getRenderIndex()],
+                tower.renderer().getImages()[object.renderer().getRenderIndex()]};
+            object.renderer().setImages(images);
 
-            object.setOnHoverEnterAction(() -> snapUpdate(object));
-            object.setOnHoverExitAction(() -> unsnapUpdate(object));
-            object.setOnMouseClickedAction(() -> addNewObject(object, false, true));
+            object.collider().setOnHoverEnterAction(() -> snapUpdate(object));
+            object.collider().setOnHoverExitAction(() -> unsnapUpdate(object));
+            object.collider().setOnMouseClickedAction(() -> addNewObject(object, false, true));
         }
         else {
             if(isFocusable) {
-                object.setOnHoverEnterAction(() -> focus(object, 10));
-                object.setOnHoverExitAction(() -> unfocus(object, 10));
+                object.collider().setOnHoverEnterAction(() -> focus(object, 10));
+                object.collider().setOnHoverExitAction(() -> unfocus(object, 10));
             }
             else {
-                object.setOnHoverEnterAction(() -> { });
-                object.setOnHoverExitAction(() -> { });
+                object.collider().setOnHoverEnterAction(() -> { });
+                object.collider().setOnHoverExitAction(() -> { });
             }
-            object.setOnMouseClickedAction(() -> { });
+            object.collider().setOnMouseClickedAction(() -> { });
         }
 
-        ui.setCursor(Cursor.DEFAULT_CURSOR);
+        ui.setCursor(Cursor.getDefaultCursor());
     }
 
-    public void focus(Interactable object, int size) {
-        object.scale(size, size);
-        object.setHover(true);
-        object.setZindex(object.getZindex()+5);
+    public void focus(GameObject object, int size) {
+        object.transform().scale(size, size);
+        object.collider().setHover(true);
+        object.renderer().setZindex(object.renderer().getZindex()+5);
     }
 
-    public void unfocus(Interactable object, int size) {
-        object.scale(-size, -size);
-        object.setHover(false);
-        object.setZindex(object.getZindex()-5);
+    public void unfocus(GameObject object, int size) {
+        object.transform().scale(-size, -size);
+        object.collider().setHover(false);
+        object.renderer().setZindex(object.renderer().getZindex()-5);
     } 
 
-    public void snap(Interactable object) {
+    public void snap(GameObject object) {
         if(!addObject) return;
-        object.setHover(true);
+        object.collider().setHover(true);
 
-        object.setVisible(true);
+        object.renderer().setVisible(true);
     }
 
-    public void unsnap(Interactable object) {
-        object.setVisible(false);
-        object.setHover(false);
+    public void unsnap(GameObject object) {
+        object.renderer().setVisible(false);
+        object.collider().setHover(false);
     }
 
-    public void snapUpdate(Interactable object) {
+    public void snapUpdate(GameObject object) {
         if(!addObject) {
             focus(object, 10);
             return; 
         }
-        object.setHover(true);
-        object.nextImage();
+        object.collider().setHover(true);
+        object.renderer().nextImage();
     }
 
-    public void unsnapUpdate(Interactable object) {
+    public void unsnapUpdate(GameObject object) {
         if(!addObject) unfocus(object, 10);
 
-        object.setHover(false);
-        object.setImage(0);
+        object.collider().setHover(false);
+        object.renderer().setImage(0);
     }
 
 }
