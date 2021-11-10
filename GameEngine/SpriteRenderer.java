@@ -17,7 +17,7 @@ public class SpriteRenderer extends Renderer {
             img[0] = ImageIO.read(new File(image));
             this.setImages(img);
         } catch (IOException e) {
-            System.out.println("Error while opening file : " + e);
+            System.out.println("Error while opening file " + image + " : " + e);
         }
     }
 
@@ -26,12 +26,13 @@ public class SpriteRenderer extends Renderer {
 
         BufferedImage[] img = new BufferedImage[images.length];
 
-        try {
-            for(int i = 0; i < images.length; i++)
+        for(int i = 0; i < images.length; i++) {
+            try {
                 img[i] = ImageIO.read(new File(images[i]));
-            this.setImages(img);
-        } catch (IOException e) {
-            System.out.println("Error while opening file : " + e);
+                this.setImages(img);
+            } catch (IOException e) {
+                System.out.println("Error while opening file " + images[i] + " : "  + e);
+            }
         }
     }
 }

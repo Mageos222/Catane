@@ -6,6 +6,7 @@ public abstract class Collider implements Component {
     private GameObject parent;
     
     private boolean isHover;
+    private boolean activ = true;
 
     private Action onHoverEnter;
     private Action onHoverExit;
@@ -25,6 +26,9 @@ public abstract class Collider implements Component {
 
     public abstract boolean isOn(Point p);
     public abstract double distanceFrom(Point p);
+
+    public void setActiv(boolean activ) { this.activ = activ; }
+    public boolean isActiv() { return activ; }
 
     public void setOnHoverEnterAction(Action action) { this.onHoverEnter = action; }
     public void setOnHoverExitAction(Action action) { this.onHoverExit = action; }

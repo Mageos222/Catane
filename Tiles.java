@@ -21,7 +21,7 @@ public class Tiles {
     };
 
     private GameObject obj;
-    private Env type;
+    private int type;
     private int value;
 
     public Tiles(Vector2 position, int type, int value)
@@ -29,7 +29,7 @@ public class Tiles {
         this.obj = new GameObject(files[type], 100, 100);
         this.obj.transform().setPosition(position.getX(), position.getY());
 
-        this.type = Env.values()[type];
+        this.type = type;
         this.value = value;
 
         File file = new File("Images/Jeton"+value+".png");
@@ -44,9 +44,11 @@ public class Tiles {
     }
 
     public GameObject getObject() { return obj; }
+    public int getValue() { return this.value; }
+    public int getType() { return this.type; }
 
     @Override
     public String toString() {
-        return "Tiles of type " + type.toString() + " and value " + value;
+        return "Tiles of type " + /*type.toString() +*/ " and value " + value;
     }
 }

@@ -34,6 +34,7 @@ public class UI extends Canvas {
     private transient BufferedImage backgroundImg;
 
     private int nbFrame = 0;
+    private int clikFrameTime = 0;
 
     public UI (int width, int height) {
         this.WIDTH = width;
@@ -73,7 +74,8 @@ public class UI extends Canvas {
         
         addMouseListener(new MouseListener() {
             public void mouseClicked(MouseEvent e) {  
-                if(e.getButton() == 1) {
+                if(e.getButton() == 1 && clikFrameTime < nbFrame) {
+                    clikFrameTime = nbFrame + 10;
                     mouseClicked = true;
                     if(!events.contains(Event.MOUSE_LEFT_CLICK))
                         events.add(Event.MOUSE_LEFT_CLICK);
@@ -84,7 +86,8 @@ public class UI extends Canvas {
             public void mouseEntered(MouseEvent e) { /* not used */ }  
             public void mouseExited(MouseEvent e) { /* not used */ }  
             public void mousePressed(MouseEvent e) { 
-                if(e.getButton() == 1) {
+                if(e.getButton() == 1 && clikFrameTime < nbFrame) {
+                    clikFrameTime = nbFrame + 10;
                     mouseClicked = true;
                     if(!events.contains(Event.MOUSE_LEFT_CLICK))
                         events.add(Event.MOUSE_LEFT_CLICK);
@@ -125,16 +128,22 @@ public class UI extends Canvas {
         Point mousePos = getRelativPosition(MouseInfo.getPointerInfo().getLocation());
 
         for(GameObject object : gameObjects) {
-            if(object.collider() == null) continue;
+            if(object.collider() == null || !object.collider().isActiv()) continue;
             Collider obj = object.collider();
 
             if(obj.isOn(mousePos) && (res == null || obj.distanceFrom(mousePos) < res.distanceFrom(mousePos))) 
                 res = obj;
-            if(obj.isHover()) obj.onHoverExit();
+            else if(obj.isHover()) {
+                obj.onHoverExit();
+                obj.setHover(false);
+            }
         }
 
         if(res != null) {
-            if(!res.isHover()) res.onHoverEnter();
+            if(!res.isHover()) {
+                res.onHoverEnter();
+                res.setHover(true);
+            }
             if(mouseClicked) res.onMouseClicked();
         } 
     }
@@ -231,7 +240,7 @@ public class UI extends Canvas {
 
             gameObject.transform().setRelativSize(r);
             gameObject.transform().setRelativPosition((int)(pos.getX()*r+shiftX[gameObject.renderer().getAlign()%3]), 
-                                          (int)(pos.getY()*r+shiftY[gameObject.renderer().getAlign()/3]));
+                                                      (int)(pos.getY()*r+shiftY[gameObject.renderer().getAlign()/3]));
         }
 
         isRescaled = false;
@@ -240,15 +249,25 @@ public class UI extends Canvas {
     public void windowClosing (WindowEvent e) {  
         f.dispose();    
     }   
+    public void close() {
+        f.dispose();
+    }
 
     @Override
     public void setCursor(Cursor cursor) { f.setCursor(cursor); }
     public void setDimension(int width, int height) { f.setSize(width, height);}
+    
+    @Override
+    public void setLocation(int x, int y) {
+        f.setLocation(x, y);
+    }
 
     @Override
     public int getWidth() { return this.screenWidth; }
     @Override
     public int getHeight() { return this.screenHeight; }
+    public int getPosX() { return f.getX(); }
+    public int getPosY() { return f.getY(); }
 
     public List<GameObject> getObjects() { return gameObjects; }
     public BufferedImage getBackgroundImage() { return backgroundImg; }

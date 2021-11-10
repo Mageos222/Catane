@@ -19,7 +19,7 @@ public class Transform {
     }
 
     public void translate(int x, int y) { 
-        this.position = this.position.translate(x, y); 
+        this.position = this.position.translate(x, -y); 
         this.relativPosition = this.relativPosition.translate((int)(x*ratio), (int)(y*ratio));
     }
 
@@ -33,7 +33,7 @@ public class Transform {
     }
 
     public void setPosition(int x, int y) {
-        this.position = new Vector2(x, y);
+        this.position = new Vector2(x, -y);
         this.relativPosition = Vector2.add(this.position, new Vector2(-x, -y)).multiply(ratio);
     }
 

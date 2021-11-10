@@ -10,6 +10,8 @@ import GameEngine.SpriteRenderer;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import javax.sound.midi.SysexMessage;
+
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
@@ -30,53 +32,36 @@ public class Game {
 
     public Game(Player[] players, int size) {
         this.players = players;
+        this.size = size;
 
         this.turn = 0;
-        this.size = size;
-        this.map = new Map(size);
+    }
 
+    public void init(int posX, int posY, int width, int height) {
         ui = new UI(1920, 1080);
-        ui.setDimension(720, 480);
+        ui.setDimension(width, height);
+        ui.setLocation(posX, posY);
+        
+        this.map = new Map(size, ui);
 
         String[] towers = {"Images/townRed.png","Images/townBlue.png", "Images/townGreen.png", "Images/townYellow.png"};
         tower = new GameObject(towers, 40, 40);
-
-        /*GameObject center = new GameObject("./Images/Field.png", 100, 100);
-        center.setPosition(0, 0);
-        ui.add(center);
-
-        GameObject forest = new GameObject("./Images/Forest.png", 100, 100);
-        forest.setPosition(-44, -75);
-        ui.add(forest);*/
 
         int tileSize = 175;
         int xOffset = (int)(0.5f*tileSize);
         int yOffset = (int)(0.74f*tileSize);
 
-        for(Tiles tile : map.getMap()) {
-            GameObject obj = tile.getObject();
-            obj.renderer().setZindex(1);
-
-            obj.transform().setSize(tileSize, tileSize);
-            obj.transform().setPosition(Vector2.multiply(obj.transform().getPosition(), new Vector2(xOffset, yOffset)));
-
-            //obj.setOnHoverEnterAction(i -> i.focus(obj));
-            //obj.setOnHoverExitAction(i -> i.unfocus(obj));
-
-            ui.add(tile.getObject());
-        }
-
         /*GameObject test = new GameObject("Images/Clay.png", 300, 300);
-        test.setZindex(10);
-        test.setPosition(100, 100);
+        test.renderer().setZindex(10);
+        test.transform().setPosition(100, 100);
         test.addComponent(new CircleCollider(test));
-        test.getCollider().setOnHoverEnterAction(() -> System.out.println("hover"));
-        test.getCollider().setOnHoverExitAction(() -> System.out.println("exit"));
+        test.collider().setOnHoverEnterAction(() -> System.out.println("hover"));
+        test.collider().setOnHoverExitAction(() -> System.out.println("exit"));
         ui.add(test);*/
 
         int yShift = (int)(0.1f*tileSize);
         int roadType = 1;
-
+        
         for(int y = 1; y <= size; y++) {
             for(int x = -2*size+y; x <= 2*size-y; x++) {
                 addEmptyVillage(x*xOffset, (int)((y-0.5f)*yOffset-yShift));
@@ -84,8 +69,8 @@ public class Game {
                 yShift = -yShift;
 
                 if(x != 2*size-y) {
-                    addEmptyRoad(x*xOffset+xOffset/2, (int)((y-0.5f)*yOffset), roadType);
-                    addEmptyRoad(x*xOffset+xOffset/2, -(int)((y-0.5f)*yOffset), (roadType+1)%2);
+                    addEmptyRoad(x*xOffset+xOffset/2, (int)((y-0.5f)*yOffset), (roadType+1)%2);
+                    addEmptyRoad(x*xOffset+xOffset/2, -(int)((y-0.5f)*yOffset), roadType);
                 }
                 if(roadType == 0 && y != size) addEmptyRoad(x*xOffset, (int)((y-0.5f)*yOffset)+yOffset/2, 2);
                 else if(roadType == 1) addEmptyRoad(x*xOffset, -(int)((y-0.5f)*yOffset)+yOffset/2, 2);
@@ -96,7 +81,7 @@ public class Game {
         }
 
         GameObject button = new GameObject("Images/button.png", 300, 100);
-        button.transform().setPosition(700, 400);
+        button.transform().setPosition(700, -400);
         button.renderer().setZindex(2);
         button.addComponent(new BoxCollider(button));
 
@@ -108,6 +93,8 @@ public class Game {
         ui.add(button);
 
         ui.setBackground("Images/Water.png");
+
+        startGame();
     }
 
     public void startGame() {
@@ -166,7 +153,8 @@ public class Game {
 
     public static void main(String[] args) {
         Game game = new Game(new Player[] { new Player("Moi", false)}, 3);
-        game.startGame();
+
+        Home home = new Home(game);
     }
 
     public void setNewObject() {

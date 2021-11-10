@@ -49,6 +49,7 @@ public class Renderer implements Component {
     public int getZindex() { return zIndex; }
 
     public void nextImage() { renderIndex = (renderIndex + 1) % images.length; }
+    public void precImage() { renderIndex = (renderIndex - 1) % images.length; }
     public void setImage(int i) { renderIndex = i; }
     public int getRenderIndex() { return renderIndex; }
 
