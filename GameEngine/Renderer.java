@@ -24,6 +24,10 @@ public class Renderer implements Component {
     private int zIndex = 0;
     private boolean visible;
 
+    private boolean play = false;
+    private int animSpeed = 1;
+    private int nextFrame;
+
     public Renderer(GameObject parent) {
         this.parent = parent;
 
@@ -63,6 +67,15 @@ public class Renderer implements Component {
 
     public int getWidth() { return images[0].getWidth(); }
     public int getHeight() { return images[0].getHeight(); }
+
+    public void startAnim() { this.play = true; }
+    public boolean isPlaying() { return this.play; }
+    public void setAnimSpeed(int speed) { this.animSpeed = speed; } 
+    public int getNextFrame() { return this.nextFrame; }
+    public void playFrame(int frame) {
+        nextImage();
+        nextFrame = frame + animSpeed;
+    }
 
     public int getId() { return 0; }
 }

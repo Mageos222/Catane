@@ -3,6 +3,7 @@ package GameEngine;
 public class FPSCounter extends Thread {
     private UI ui;
     private int frames;
+    private int fps = 0;
 
     public FPSCounter(UI ui) {
         this.ui = ui;
@@ -19,8 +20,11 @@ public class FPSCounter extends Thread {
             }
 
             int newFrames = ui.getNbFrame();
-            System.out.println(newFrames - frames + " fps");
+            fps = newFrames - frames;
+            System.out.println(fps + " fps");
             frames = newFrames;
         }
     }
+
+    public int getFPS() { return fps; }
 }

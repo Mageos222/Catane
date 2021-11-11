@@ -19,13 +19,16 @@ public class Home {
     private GameObject profil4;
 
     private GameObject playButton;
+    private GameObject backButton;
     private GameObject plusButton;
     private GameObject minusButton;
 
     private GameObject[] botButtons;
 
-    public Home(Game game) {
+    private int nbPlayer = 3;
+    private boolean[] bot; 
 
+    public Home(Game game) {
         UI ui = new UI(1920, 1080);
         ui.setDimension(720, 480);
         ui.setBackground("Images/Buttons/WoodBack.jpg");
@@ -42,7 +45,7 @@ public class Home {
             newButton.renderer().setImage(0);
             ui.setCursor(Cursor.getDefaultCursor());
         });
-        newButton.collider().setOnMouseClickedAction(this::changeScreen);
+        newButton.collider().setOnMouseClickedAction(() -> changeScreen(true));
 
         continueButton = new GameObject(new String[] {"Images/Buttons/button2-1.png", "Images/Buttons/button2-2.png"}, 300, 100);
         continueButton.transform().setPosition(0, -100);
@@ -78,6 +81,22 @@ public class Home {
             ui.setCursor(Cursor.getDefaultCursor());
         });
         playButton.collider().setOnMouseClickedAction(() -> startNewGame(ui, game));
+
+        backButton = new GameObject(new String[] { "Images/Buttons/backButton2.png", "Images/Buttons/backButton.png" }, 300, 100);
+        backButton.transform().setPosition(800, 400);
+        backButton.renderer().setAlign(Renderer.Align.BOTTOM_RIGHT);
+        backButton.renderer().setVisible(false);
+
+        backButton.addComponent(new BoxCollider(backButton));
+        backButton.collider().setOnHoverEnterAction(() -> {
+            backButton.renderer().setImage(1);
+            ui.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        });
+        backButton.collider().setOnHoverExitAction(() -> {
+            backButton.renderer().setImage(0);
+            ui.setCursor(Cursor.getDefaultCursor());
+        });
+        backButton.collider().setOnMouseClickedAction(() -> changeScreen(false));
 
         plusButton = new GameObject("Images/Buttons/button_add.png", 100, 100);
         plusButton.transform().setPosition(400, 50);
@@ -127,6 +146,12 @@ public class Home {
         ui.add(minusButton);
 
         ui.add(playButton);
+        ui.add(backButton);
+
+        MusicPlayer music = new MusicPlayer("Music/Music.wav");
+        music.loop();
+
+        bot = new boolean[4];
 
         while(ui.isActive()) {
             List<UI.Event> events = ui.nextFrame();
@@ -145,23 +170,29 @@ public class Home {
         }
     }
 
-    public void changeScreen() {
-        this.newButton.renderer().setVisible(false);
-        this.newButton.collider().setActiv(false);
-        this.continueButton.renderer().setVisible(false);
-        //this.continueButton.collider().setActiv(false);
+    public void changeScreen(boolean state) {
+        MusicPlayer button = new MusicPlayer("Music/button.wav");
+        button.play();
 
-        this.profil1.renderer().setVisible(true);
-        this.profil2.renderer().setVisible(true);
-        this.profil3.renderer().setVisible(true);
+        this.newButton.renderer().setVisible(!state);
+        this.newButton.collider().setActiv(!state);
+        this.continueButton.renderer().setVisible(!state);
 
-        this.plusButton.renderer().setVisible(true);
+        this.profil1.renderer().setVisible(state);
+        this.profil2.renderer().setVisible(state);
+        this.profil3.renderer().setVisible(state);
 
-        this.playButton.renderer().setVisible(true);
+        this.plusButton.renderer().setVisible(state);
+        this.plusButton.collider().setActiv(state);
+
+        this.playButton.renderer().setVisible(state);
+        this.playButton.collider().setActiv(state);
+        this.backButton.renderer().setVisible(state);
+        this.backButton.collider().setActiv(state);
 
         for(int i = 0; i < 3; i++) {
-            botButtons[i].renderer().setVisible(true);
-            botButtons[i].collider().setActiv(true);
+            botButtons[i].renderer().setVisible(state);
+            botButtons[i].collider().setActiv(state);
         }
     }
 
@@ -175,6 +206,8 @@ public class Home {
         profil4.renderer().setVisible(true);
         botButtons[3].renderer().setVisible(true);
         botButtons[3].collider().setActiv(true);
+
+        nbPlayer = 4;
     }
 
     public void removePlayer() {
@@ -187,20 +220,33 @@ public class Home {
         profil4.renderer().setVisible(false);
         botButtons[3].renderer().setVisible(false);
         botButtons[3].collider().setActiv(false);
+
+        nbPlayer = 3;
     }
 
     public void switchBot(int i) {
+        MusicPlayer button = new MusicPlayer("Music/button.wav");
+        button.play();
+        
         botButtons[i].renderer().setImage((botButtons[i].renderer().getRenderIndex()+2)%4);
+        bot[i] = !bot[i];
     }
 
     public void startNewGame(UI ui, Game game) {
+        MusicPlayer button = new MusicPlayer("Music/button.wav");
+        button.play();
+
         int width = ui.getWidth();
         int height = ui.getHeight();
 
         int posX = ui.getPosX();
         int posY = ui.getPosY();
 
+        Player[] players = new Player[nbPlayer];
+        for(int i = 0; i < nbPlayer; i++) 
+            players[i] = new Player("Player " + (i+1), bot[i]);
+
         ui.close();
-        game.init(posX, posY, width, height);
+        game.init(players, posX, posY, width, height);
     }
 }

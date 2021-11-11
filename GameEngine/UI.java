@@ -75,7 +75,7 @@ public class UI extends Canvas {
         addMouseListener(new MouseListener() {
             public void mouseClicked(MouseEvent e) {  
                 if(e.getButton() == 1 && clikFrameTime < nbFrame) {
-                    clikFrameTime = nbFrame + 10;
+                    clikFrameTime = nbFrame + 2;
                     mouseClicked = true;
                     if(!events.contains(Event.MOUSE_LEFT_CLICK))
                         events.add(Event.MOUSE_LEFT_CLICK);
@@ -87,7 +87,7 @@ public class UI extends Canvas {
             public void mouseExited(MouseEvent e) { /* not used */ }  
             public void mousePressed(MouseEvent e) { 
                 if(e.getButton() == 1 && clikFrameTime < nbFrame) {
-                    clikFrameTime = nbFrame + 10;
+                    clikFrameTime = nbFrame + 2;
                     mouseClicked = true;
                     if(!events.contains(Event.MOUSE_LEFT_CLICK))
                         events.add(Event.MOUSE_LEFT_CLICK);
@@ -174,6 +174,12 @@ public class UI extends Canvas {
         return f.isActive();
     }
 
+    @Override
+    public void setVisible(boolean b) {
+        f.setVisible(b);
+        super.setVisible(b);
+    }
+
     public void add(GameObject gameObject) {
         this.gameObjects.add(gameObject);
     }
@@ -206,6 +212,9 @@ public class UI extends Canvas {
                     renderQueu.remove(i);
                 }
                 else i++;
+
+                if(gameObject.renderer().isPlaying() && gameObject.renderer().getNextFrame() <= nbFrame) 
+                    gameObject.renderer().playFrame(nbFrame);
             }
             index++;
         }

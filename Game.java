@@ -29,18 +29,24 @@ public class Game {
     private boolean addObject = false;
 
     private FPSCounter fps;
+    private LoadingPage loading;
 
-    public Game(Player[] players, int size) {
-        this.players = players;
+    public Game(int size) {
         this.size = size;
 
         this.turn = 0;
     }
 
-    public void init(int posX, int posY, int width, int height) {
+    public void init(Player[] players, int posX, int posY, int width, int height) {
+        this.players = players;
+
         ui = new UI(1920, 1080);
         ui.setDimension(width, height);
         ui.setLocation(posX, posY);
+        ui.setVisible(false);
+
+        loading = new LoadingPage(posX, posY, width, height);
+        loading.start();
         
         this.map = new Map(size, ui);
 
@@ -101,7 +107,15 @@ public class Game {
         fps = new FPSCounter(ui);
         fps.start();
 
-        while(ui.isActive()) {
+        while(ui.isActive() || loading.isActiv()) {
+
+            System.out.println(fps.getFPS());
+            if(loading.isActiv() && fps.getFPS() > 0) {
+                loading.close();
+                loading.interrupt();
+                ui.setVisible(true);
+            }
+
             List<UI.Event> events = ui.nextFrame();
 
             for(UI.Event event : events) {
@@ -152,7 +166,7 @@ public class Game {
     }
 
     public static void main(String[] args) {
-        Game game = new Game(new Player[] { new Player("Moi", false)}, 3);
+        Game game = new Game(3);
 
         Home home = new Home(game);
     }
