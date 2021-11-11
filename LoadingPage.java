@@ -27,11 +27,14 @@ public class LoadingPage extends Thread {
             ui.nextFrame();
             
             try {
-                TimeUnit.MILLISECONDS.sleep(50);
+                sleep(50);
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 break;
             }
         }
+
+        System.out.println("loading closed");
     }
 
     public boolean isActiv() { return ui.isActive(); }

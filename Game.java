@@ -8,14 +8,11 @@ import GameEngine.FPSCounter;
 import GameEngine.SpriteRenderer;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import javax.sound.midi.SysexMessage;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
-public class Game {
+public class Game extends Thread {
     
     private Player[] players;
     private int turn;
@@ -30,6 +27,8 @@ public class Game {
 
     private FPSCounter fps;
     private LoadingPage loading;
+
+    private GameObject[] profils;
 
     public Game(int size) {
         this.size = size;
@@ -47,7 +46,10 @@ public class Game {
 
         loading = new LoadingPage(posX, posY, width, height);
         loading.start();
-        
+    }
+
+    @Override
+    public void run() {
         this.map = new Map(size, ui);
 
         String[] towers = {"Images/townRed.png","Images/townBlue.png", "Images/townGreen.png", "Images/townYellow.png"};
@@ -56,14 +58,6 @@ public class Game {
         int tileSize = 175;
         int xOffset = (int)(0.5f*tileSize);
         int yOffset = (int)(0.74f*tileSize);
-
-        /*GameObject test = new GameObject("Images/Clay.png", 300, 300);
-        test.renderer().setZindex(10);
-        test.transform().setPosition(100, 100);
-        test.addComponent(new CircleCollider(test));
-        test.collider().setOnHoverEnterAction(() -> System.out.println("hover"));
-        test.collider().setOnHoverExitAction(() -> System.out.println("exit"));
-        ui.add(test);*/
 
         int yShift = (int)(0.1f*tileSize);
         int roadType = 1;
@@ -86,30 +80,12 @@ public class Game {
             roadType = 1;
         }
 
-        GameObject button = new GameObject("Images/button.png", 300, 100);
-        button.transform().setPosition(700, -400);
-        button.renderer().setZindex(2);
-        button.addComponent(new BoxCollider(button));
+        drawCanvas();
 
-        button.collider().setOnHoverEnterAction(() -> focus(button, 20));
-        button.collider().setOnHoverExitAction(() -> unfocus(button, 20));
-        button.collider().setOnMouseClickedAction(this::setNewObject);
-
-        button.renderer().setAlign(Renderer.Align.BOTTOM_RIGHT);
-        ui.add(button);
-
-        ui.setBackground("Images/Water.png");
-
-        startGame();
-    }
-
-    public void startGame() {
         fps = new FPSCounter(ui);
         fps.start();
 
         while(ui.isActive() || loading.isActiv()) {
-
-            System.out.println(fps.getFPS());
             if(loading.isActiv() && fps.getFPS() > 0) {
                 loading.close();
                 loading.interrupt();
@@ -126,13 +102,14 @@ public class Game {
             }
             
             try {
-                TimeUnit.MILLISECONDS.sleep(50);
+                sleep(50);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                Thread.currentThread().interrupt();
             }
         }
 
         fps.interrupt();
+        System.out.println("Game closed");
     }
 
     public void addEmptyVillage(int x, int y) {
@@ -150,9 +127,11 @@ public class Game {
     }
 
     public void addEmptyRoad(int x, int y, int i) {
-        String[] img = {"Images/RoadRightRed.png", "Images/RoadLeftRed.png", "Images/RoadRed.png" };
-        
-        GameObject emptyRoad = new GameObject(img[i], 90, 90);
+        String[][] imgFiles = { {"Images/RoadRightRed.png", "Images/RoadRightBlue.png", "Images/RoadRightGreen.png", "Images/RoadRightYellow.png"}, 
+        {"Images/RoadLeftRed.png", "Images/RoadLeftBlue.png", "Images/RoadLeftGreen.png", "Images/RoadLeftYellow.png" }, 
+        {"Images/RoadRed.png", "Images/RoadBlue.png", "Images/RoadGreen.png", "Images/RoadYellow.png" }};
+
+        GameObject emptyRoad = new GameObject(imgFiles[i], 90, 90);
         emptyRoad.transform().setPosition(x, y);
         emptyRoad.renderer().setVisible(false);
         emptyRoad.renderer().setZindex(3);
@@ -166,9 +145,13 @@ public class Game {
     }
 
     public static void main(String[] args) {
-        Game game = new Game(3);
+        //Game game = new Game(3);
 
-        Home home = new Home(game);
+        MusicPlayer music = new MusicPlayer("Music/Music.wav");
+        music.loop();
+
+        Home home = new Home(new Game(3));
+        home.start();
     }
 
     public void setNewObject() {
@@ -185,9 +168,11 @@ public class Game {
             BufferedImage[] images = {object.renderer().getImages()[object.renderer().getRenderIndex()],
                 tower.renderer().getImages()[object.renderer().getRenderIndex()]};
             object.renderer().setImages(images);
+            object.renderer().setImage(0);
 
-            object.collider().setOnHoverEnterAction(() -> snapUpdate(object));
-            object.collider().setOnHoverExitAction(() -> unsnapUpdate(object));
+            int actualTurn = turn;
+            object.collider().setOnHoverEnterAction(() -> snapUpdate(object, actualTurn));
+            object.collider().setOnHoverExitAction(() -> unsnapUpdate(object, actualTurn));
             object.collider().setOnMouseClickedAction(() -> addNewObject(object, false, true));
         }
         else {
@@ -220,6 +205,7 @@ public class Game {
     public void snap(GameObject object) {
         if(!addObject) return;
         object.collider().setHover(true);
+        object.renderer().setImage(this.getTurn());
 
         object.renderer().setVisible(true);
     }
@@ -229,8 +215,8 @@ public class Game {
         object.collider().setHover(false);
     }
 
-    public void snapUpdate(GameObject object) {
-        if(!addObject) {
+    public void snapUpdate(GameObject object, int i) {
+        if(!addObject || i != this.getTurn()) {
             focus(object, 10);
             return; 
         }
@@ -238,11 +224,86 @@ public class Game {
         object.renderer().nextImage();
     }
 
-    public void unsnapUpdate(GameObject object) {
-        if(!addObject) unfocus(object, 10);
+    public void unsnapUpdate(GameObject object, int i) {
+        if(!addObject || i != this.getTurn()) unfocus(object, 10);
 
         object.collider().setHover(false);
         object.renderer().setImage(0);
     }
 
+    public void nextTurn() {
+        this.profils[turn].transform().scale(0.8);
+        turn = (turn+1) % players.length;
+        this.profils[turn].transform().scale(1.2);
+    }
+
+    private void drawCanvas() {
+        this.profils = new GameObject[players.length];
+
+        this.profils[0] = new GameObject("Images/Profils/playerProfil1.png", 200, 200);
+        this.profils[0].transform().setPosition(-825, 375);
+        this.profils[0].renderer().setAlign(Renderer.Align.TOP_LEFT);
+        ui.add(this.profils[0]);
+
+        this.profils[1] = new GameObject("Images/Profils/playerProfil2.png", 200, 200);
+        this.profils[1].transform().setPosition(825, 375);
+        this.profils[1].renderer().setAlign(Renderer.Align.TOP_RIGHT);
+        ui.add(this.profils[1]);
+
+        this.profils[2] = new GameObject("Images/Profils/playerProfil3.png", 200, 200);
+        this.profils[2].transform().setPosition(-825, -375);
+        this.profils[2].renderer().setAlign(Renderer.Align.BOTTOM_LEFT);
+        ui.add(this.profils[2]);
+
+        if(players.length == 4) {
+            this.profils[3] = new GameObject("Images/Profils/playerProfil4.png", 200, 200);
+            this.profils[3].transform().setPosition(825, -375);
+            this.profils[3].renderer().setAlign(Renderer.Align.BOTTOM_RIGHT);
+            ui.add(this.profils[3]);
+        }
+        this.profils[0].transform().scale(1.2);
+
+        GameObject build = new GameObject("Images/GamePage/Hammer.png", 75, 75);
+        build.transform().setPosition(0, -450);
+        build.renderer().setZindex(2);
+        build.addComponent(new BoxCollider(build));
+
+        build.collider().setOnHoverEnterAction(() -> focus(build, 20));
+        build.collider().setOnHoverExitAction(() -> unfocus(build, 20));
+        build.collider().setOnMouseClickedAction(this::setNewObject);
+
+        ui.add(build);
+
+        GameObject next = new GameObject("Images/GamePage/nextButton.png", 75, 75);
+        next.transform().setPosition(150, -450);
+        next.renderer().setZindex(2);
+        next.addComponent(new BoxCollider(next));
+
+        next.collider().setOnHoverEnterAction(() -> focus(next, 20));
+        next.collider().setOnHoverExitAction(() -> unfocus(next, 20));
+        next.collider().setOnMouseClickedAction(this::nextTurn);
+
+        ui.add(next);
+
+        GameObject pause = new GameObject("Images/GamePage/Pause.png", 75, 75);
+        pause.transform().setPosition(0, 450);
+        pause.renderer().setZindex(2);
+        pause.addComponent(new CircleCollider(pause));
+
+        pause.collider().setOnHoverEnterAction(() -> focus(pause, 20));
+        pause.collider().setOnHoverExitAction(() -> unfocus(pause, 20));
+        pause.collider().setOnMouseClickedAction(() -> {
+            Home home = new Home(new Game(size), ui.getWidth(), ui.getHeight(), ui.getPosX(), ui.getPosY());
+            home.start();
+            ui.close();
+            this.interrupt();
+        });
+
+        ui.add(pause);
+
+        ui.setBackground("Images/Water.png");
+
+    }
+
+    public int getTurn() { return turn; }
 }

@@ -75,7 +75,7 @@ public class UI extends Canvas {
         addMouseListener(new MouseListener() {
             public void mouseClicked(MouseEvent e) {  
                 if(e.getButton() == 1 && clikFrameTime < nbFrame) {
-                    clikFrameTime = nbFrame + 2;
+                    clikFrameTime = nbFrame + 3;
                     mouseClicked = true;
                     if(!events.contains(Event.MOUSE_LEFT_CLICK))
                         events.add(Event.MOUSE_LEFT_CLICK);
@@ -87,7 +87,7 @@ public class UI extends Canvas {
             public void mouseExited(MouseEvent e) { /* not used */ }  
             public void mousePressed(MouseEvent e) { 
                 if(e.getButton() == 1 && clikFrameTime < nbFrame) {
-                    clikFrameTime = nbFrame + 2;
+                    clikFrameTime = nbFrame + 3;
                     mouseClicked = true;
                     if(!events.contains(Event.MOUSE_LEFT_CLICK))
                         events.add(Event.MOUSE_LEFT_CLICK);
@@ -219,7 +219,8 @@ public class UI extends Canvas {
             index++;
         }
 
-        g.drawImage(frame, 0, 0, screenWidth, screenHeight, this);
+        if(isActive())
+            g.drawImage(frame, 0, 0, screenWidth, screenHeight, this);
         display.dispose();
     }
 

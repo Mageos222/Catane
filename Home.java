@@ -6,10 +6,11 @@ import GameEngine.GameObject;
 import GameEngine.Renderer;
 import GameEngine.UI;
 
-import java.util.concurrent.TimeUnit;
 import java.awt.*;
 
-public class Home {
+public class Home extends Thread {
+    private UI ui;
+
     private GameObject newButton;
     private GameObject continueButton;
 
@@ -29,10 +30,23 @@ public class Home {
     private boolean[] bot; 
 
     public Home(Game game) {
-        UI ui = new UI(1920, 1080);
+        ui = new UI(1920, 1080);
         ui.setDimension(720, 480);
         ui.setBackground("Images/Buttons/WoodBack.jpg");
 
+        init(game);
+    }
+
+    public Home(Game game, int w, int h, int x, int y) {
+        ui = new UI(1920, 1080);
+        ui.setDimension(w, h);
+        ui.setLocation(x, y);
+        ui.setBackground("Images/Buttons/WoodBack.jpg");
+
+        init(game);
+    }
+    
+    public void init(Game game) {
         newButton = new GameObject(new String[] {"Images/Buttons/button1-1.png", "Images/Buttons/button1-2.png"}, 300, 100);
         newButton.transform().setPosition(0, 100);
 
@@ -50,19 +64,19 @@ public class Home {
         continueButton = new GameObject(new String[] {"Images/Buttons/button2-1.png", "Images/Buttons/button2-2.png"}, 300, 100);
         continueButton.transform().setPosition(0, -100);
 
-        profil1 = new GameObject("Images/Buttons/Profil1.png", 300, 600);
+        profil1 = new GameObject("Images/Profils/Profil1.png", 300, 600);
         profil1.transform().setPosition(-800, 50);
         profil1.renderer().setVisible(false);
 
-        profil2 = new GameObject("Images/Buttons/Profil2.png", 300, 600);
+        profil2 = new GameObject("Images/Profils/Profil2.png", 300, 600);
         profil2.transform().setPosition(-400, 50);
         profil2.renderer().setVisible(false);
 
-        profil3 = new GameObject("Images/Buttons/Profil3.png", 300, 600);
+        profil3 = new GameObject("Images/Profils/Profil3.png", 300, 600);
         profil3.transform().setPosition(0, 50);
         profil3.renderer().setVisible(false);
 
-        profil4 = new GameObject("Images/Buttons/Profil4.png", 300, 600);
+        profil4 = new GameObject("Images/Profils/Profil4.png", 300, 600);
         profil4.transform().setPosition(400, 50);
         profil4.renderer().setVisible(false);
 
@@ -148,11 +162,10 @@ public class Home {
         ui.add(playButton);
         ui.add(backButton);
 
-        MusicPlayer music = new MusicPlayer("Music/Music.wav");
-        music.loop();
+        bot = new boolean[4];  
+    }
 
-        bot = new boolean[4];
-
+    public void run() {
         while(ui.isActive()) {
             List<UI.Event> events = ui.nextFrame();
 
@@ -163,11 +176,13 @@ public class Home {
             }
             
             try {
-                TimeUnit.MILLISECONDS.sleep(50);
+                sleep(50);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                break;
             }
         }
+
+        System.out.println("Home closed");
     }
 
     public void changeScreen(boolean state) {
@@ -247,6 +262,8 @@ public class Home {
             players[i] = new Player("Player " + (i+1), bot[i]);
 
         ui.close();
+        this.interrupt();
         game.init(players, posX, posY, width, height);
+        game.start();
     }
 }

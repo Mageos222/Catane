@@ -3,7 +3,7 @@ package GameEngine;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
-public class Renderer implements Component {
+public abstract class Renderer implements Component {
     public enum Align { TOP_LEFT(0), TOP(1), TOP_RIGHT(2), CENTER_LEFT(3), CENTER(4), 
         CENTER_RIGHT(5), BOTTOM_LEFT(6), BOTTOM(7), BOTTOM_RIGHT(8);
     
@@ -76,6 +76,8 @@ public class Renderer implements Component {
         nextImage();
         nextFrame = frame + animSpeed;
     }
+
+    public abstract void addImage(String image);
 
     public int getId() { return 0; }
 }

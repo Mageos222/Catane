@@ -35,4 +35,19 @@ public class SpriteRenderer extends Renderer {
             }
         }
     }
+
+    @Override
+    public void addImage(String image) {
+        BufferedImage[] actual = getImages();
+        BufferedImage[] newArray = new BufferedImage[actual.length+1];
+        
+        for(int i = 0; i < actual.length; i++) newArray[i] = actual[i];
+
+        try {
+            newArray[actual.length] = ImageIO.read(new File(image));
+            this.setImages(newArray);
+        } catch (IOException e) {
+            System.out.println("Error while opening file " + image + " : " + e);
+        }
+    }
 }
