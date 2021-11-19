@@ -131,8 +131,13 @@ public class UI extends Canvas {
             if(object.collider() == null || !object.collider().isActiv()) continue;
             Collider obj = object.collider();
 
-            if(obj.isOn(mousePos) && (res == null || obj.distanceFrom(mousePos) < res.distanceFrom(mousePos))) 
+            if(obj.isOn(mousePos) && (res == null || obj.distanceFrom(mousePos) < res.distanceFrom(mousePos))) {
+                if(res != null && res.isHover()) {
+                    res.onHoverExit();
+                    res.setHover(false);
+                }
                 res = obj;
+            }
             else if(obj.isHover()) {
                 obj.onHoverExit();
                 obj.setHover(false);

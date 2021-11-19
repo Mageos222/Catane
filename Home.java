@@ -98,7 +98,7 @@ public class Home extends Thread {
 
         backButton = new GameObject(new String[] { "Images/Buttons/backButton2.png", "Images/Buttons/backButton.png" }, 300, 100);
         backButton.transform().setPosition(800, 400);
-        backButton.renderer().setAlign(Renderer.Align.BOTTOM_RIGHT);
+        backButton.renderer().setAlign(Renderer.Align.TOP_RIGHT);
         backButton.renderer().setVisible(false);
 
         backButton.addComponent(new BoxCollider(backButton));

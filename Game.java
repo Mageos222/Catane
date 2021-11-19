@@ -85,10 +85,14 @@ public class Game extends Thread {
         fps = new FPSCounter(ui);
         fps.start();
 
-        while(ui.isActive() || loading.isActiv()) {
-            if(loading.isActiv() && fps.getFPS() > 0) {
+        while(ui.isActive() || loading != null) {
+            if(loading != null && fps.getFPS() > 0) {
+                ui.setLocation(loading.getX(), loading.getY());
+
                 loading.close();
                 loading.interrupt();
+                loading = null;
+
                 ui.setVisible(true);
             }
 

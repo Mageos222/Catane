@@ -15,7 +15,7 @@ public class LoadingPage extends Thread {
         String[] images = new String[12];
         for(int i = 0; i < 12; i++) images[i] = "Images/LoadingPage/anim" + (i+1) + ".png";
 
-        GameObject loading = new GameObject(images, width, height);
+        GameObject loading = new GameObject(images, 1920, 1080);
         loading.renderer().setAnimSpeed(10);
         loading.renderer().startAnim();
         ui.add(loading);
@@ -42,4 +42,9 @@ public class LoadingPage extends Thread {
     public void close() {
         ui.close();
     }
+
+    public int getX() { return ui.getPosX(); }
+    public int getY() { return ui.getPosY(); }
+    public int getWidth() { return ui.getWidth(); }
+    public int getHeight() { return ui.getHeight(); }
 }
