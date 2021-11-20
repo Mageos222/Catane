@@ -50,7 +50,7 @@ public class Game extends Thread {
 
     @Override
     public void run() {
-        this.map = new Map(size, ui);
+        this.map = new Map(size, ui, this);
 
         String[] towers = {"Images/townRed.png","Images/townBlue.png", "Images/townGreen.png", "Images/townYellow.png"};
         tower = new GameObject(towers, 40, 40);
@@ -64,8 +64,8 @@ public class Game extends Thread {
         
         for(int y = 1; y <= size; y++) {
             for(int x = -2*size+y; x <= 2*size-y; x++) {
-                addEmptyVillage(x*xOffset, (int)((y-0.5f)*yOffset-yShift));
-                addEmptyVillage(x*xOffset, -(int)((y-0.5f)*yOffset-yShift));
+                //addEmptyVillage(x*xOffset, (int)((y-0.5f)*yOffset-yShift));
+                //addEmptyVillage(x*xOffset, -(int)((y-0.5f)*yOffset-yShift));
                 yShift = -yShift;
 
                 if(x != 2*size-y) {
@@ -121,7 +121,7 @@ public class Game extends Thread {
         GameObject empty = new GameObject(houses, 70, 70);
         empty.transform().setPosition(x, y);
         empty.renderer().setZindex(4);
-        empty.renderer().setVisible(false);
+        //empty.renderer().setVisible(false);
 
         empty.addComponent(new CircleCollider(empty));
         empty.collider().setOnHoverEnterAction(() -> snap(empty));
@@ -152,7 +152,7 @@ public class Game extends Thread {
         //Game game = new Game(3);
 
         MusicPlayer music = new MusicPlayer("Music/Music.wav");
-        music.loop();
+        //music.loop();
 
         Home home = new Home(new Game(3));
         home.start();

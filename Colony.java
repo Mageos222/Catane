@@ -13,7 +13,11 @@ public class Colony {
         tiles = new Tiles[3];
     }
 
-    public void add(){
-        
+    public void add(Tiles tile){
+        Tiles[] n = new Tiles[tiles.length+1];
+        for(int i = 0; i < tiles.length; i++)
+            n[i] = tiles[i];
+        n[tiles.length] = tile;
+        tiles = n;
     }
 }
