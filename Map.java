@@ -1,4 +1,6 @@
 import GameEngine.Vector2;
+
+import java.util.ArrayList;
 import java.util.Random;
 
 import GameEngine.CircleCollider;
@@ -45,19 +47,42 @@ public class Map {
         // Adding tiles for each Colony
         Random rnd = new Random();
 
+        // creation d'une liste avec les valeurs des biomes+
+        ArrayList<Integer> listType = new ArrayList<Integer>();
+                
+        for (int i=0; i<5; i++){
+            listType.add(i);
+            listType.add(i);
+        }
+        listType.add(5);
+
+        for(int i=0; i<3*size*(size-1)-10; i++){
+            listType.add(rnd.nextInt(5));
+        }
+
         for(int y = 0; y < 2*size - 1; y++) {
             for(int x = 0; x < 2*size-Math.abs(size-y-1)-1; x++) {
 
                 // TODO : 1 desert, min 2 de chaque type
 
-                int type = rnd.nextInt(6);
-                int value = rnd.nextInt(11)+2; // Pas de 7
+                int value = rnd.nextInt(11)+2;
+                while (value == 7){
+                    value = rnd.nextInt(11)+2;
+                }
+
+                // creation des tiles avec des biomes de la liste 
+                int r = rnd.nextInt(listType.size());
+                int type = listType.get(r);
+                listType.remove(r);
 
                 Tiles tile = new Tiles(new Vector2(x, y), type, value);
-                for(int i = 2*x; i < 2*x+2; i++) 
-                    for(int j = y; j <= y+1; j++) 
+                for(int i = 2*x; i < 2*x+2; i++) {
+                    for(int j = y; j <= y+1; j++){
+ 
                         if(y < size - 1) map[j][i+j].add(tile);
                         else map[j][i+(j+1)%2].add(tile);
+                    }
+                }    
 
                 GameObject obj = new GameObject(files[type], tileSize, tileSize);       // creation d'un objet
                 obj.renderer().setZindex(1);
