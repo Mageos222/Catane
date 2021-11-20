@@ -21,7 +21,7 @@ public class Game extends Thread {
     private int size;
     private UI ui;
 
-    private static GameObject tower;
+    private GameObject tower;
     
     private boolean addObject = false;
 
@@ -54,31 +54,6 @@ public class Game extends Thread {
 
         String[] towers = {"Images/townRed.png","Images/townBlue.png", "Images/townGreen.png", "Images/townYellow.png"};
         tower = new GameObject(towers, 40, 40);
-
-        int tileSize = 175;
-        int xOffset = (int)(0.5f*tileSize);
-        int yOffset = (int)(0.74f*tileSize);
-
-        int yShift = (int)(0.1f*tileSize);
-        int roadType = 1;
-        
-        for(int y = 1; y <= size; y++) {
-            for(int x = -2*size+y; x <= 2*size-y; x++) {
-                //addEmptyVillage(x*xOffset, (int)((y-0.5f)*yOffset-yShift));
-                //addEmptyVillage(x*xOffset, -(int)((y-0.5f)*yOffset-yShift));
-                yShift = -yShift;
-
-                if(x != 2*size-y) {
-                    addEmptyRoad(x*xOffset+xOffset/2, (int)((y-0.5f)*yOffset), (roadType+1)%2);
-                    addEmptyRoad(x*xOffset+xOffset/2, -(int)((y-0.5f)*yOffset), roadType);
-                }
-                if(roadType == 0 && y != size) addEmptyRoad(x*xOffset, (int)((y-0.5f)*yOffset)+yOffset/2, 2);
-                else if(roadType == 1) addEmptyRoad(x*xOffset, -(int)((y-0.5f)*yOffset)+yOffset/2, 2);
-                roadType = (roadType+1)%2;
-            }
-            yShift = -yShift;
-            roadType = 1;
-        }
 
         drawCanvas();
 
@@ -121,7 +96,7 @@ public class Game extends Thread {
         GameObject empty = new GameObject(houses, 70, 70);
         empty.transform().setPosition(x, y);
         empty.renderer().setZindex(4);
-        //empty.renderer().setVisible(false);
+        empty.renderer().setVisible(false);
 
         empty.addComponent(new CircleCollider(empty));
         empty.collider().setOnHoverEnterAction(() -> snap(empty));
@@ -146,16 +121,6 @@ public class Game extends Thread {
         emptyRoad.collider().setOnHoverExitAction(() -> unsnap(emptyRoad));
         emptyRoad.collider().setOnMouseClickedAction(() -> addNewObject(emptyRoad, false, false));
         ui.add(emptyRoad);
-    }
-
-    public static void main(String[] args) {
-        //Game game = new Game(3);
-
-        MusicPlayer music = new MusicPlayer("Music/Music.wav");
-        //music.loop();
-
-        Home home = new Home(new Game(3));
-        home.start();
     }
 
     public void setNewObject() {
@@ -310,4 +275,14 @@ public class Game extends Thread {
     }
 
     public int getTurn() { return turn; }
+
+    public static void main(String[] args) {
+        //Game game = new Game(3);
+
+        MusicPlayer music = new MusicPlayer("Music/Music.wav");
+        //music.loop();
+
+        Home home = new Home(new Game(3));
+        home.start();
+    }
 }

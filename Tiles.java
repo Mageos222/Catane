@@ -38,11 +38,10 @@ public class Tiles {
     public int getType() { return this.type; }
 
     public Image getImage() {
-        File file = new File("Images/Jeton"+value+".png");
+        File file = new File("Images/Jeton/Jeton"+value+".png");
         try {
             BufferedImage originalImage = ImageIO.read(file);
-            Image image = originalImage.getScaledInstance(40, 40, Image.SCALE_SMOOTH);
-            return image;
+            return originalImage.getScaledInstance(60, 60, Image.SCALE_SMOOTH);
         }
         catch(IOException e) {
             System.out.println("Error while opening Jeton file " + value + " : " + e);

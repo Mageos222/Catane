@@ -1,7 +1,7 @@
 import GameEngine.Vector2;
+
 import java.util.Random;
 
-import GameEngine.CircleCollider;
 import GameEngine.GameObject;
 import GameEngine.UI;
 
@@ -30,6 +30,8 @@ public class Map {
 
         // Map Init
         map = new Colony[size*2][];
+        int roadType = 1;
+
         for(int y = 0; y < size * 2; y++) {
             int i = (y < size)?y:2*size-y-1;
             map[y] = new Colony[2*(size+i)+1];
@@ -38,8 +40,14 @@ public class Map {
 
                 game.addEmptyVillage((x-size-i)*xOffset, (int)((y-size+0.5f)*yOffset+yShift));
                 yShift = -yShift;
+
+                if(x != 2*(size+i)) game.addEmptyRoad((x-size-i)*xOffset+xOffset/2, (int)((y-size+0.5f)*yOffset), roadType);
+                if(roadType == 1 && y != 2*size-1) game.addEmptyRoad((x-size-i)*xOffset, (int)((y-size+0.5f)*yOffset)+yOffset/2, 2);
+                
+                roadType = (roadType+1)%2;
             }
             yShift = (y == size-1)?yShift:-yShift;
+            roadType = (y > size-2)?0:1;
         }
 
         // Adding tiles for each Colony
@@ -51,7 +59,7 @@ public class Map {
                 // TODO : 1 desert, min 2 de chaque type
 
                 int type = rnd.nextInt(6);
-                int value = rnd.nextInt(11)+2; // Pas de 7
+                int value = rnd.nextInt(11)+2; // 2-12 , Pas de 7
 
                 Tiles tile = new Tiles(new Vector2(x, y), type, value);
                 for(int i = 2*x; i < 2*x+2; i++) 
