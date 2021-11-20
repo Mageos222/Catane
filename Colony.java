@@ -10,6 +10,10 @@ public class Colony {
     private Tiles[] tiles;
 
     public Colony() {
+        tiles = new Tiles[3];
+    }
 
+    public void add(){
+        
     }
 }

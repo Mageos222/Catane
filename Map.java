@@ -38,13 +38,33 @@ public class Map {
                 int value = rnd.nextInt(11)+2;
                 this.map[y][x] = new Tiles(new Vector2(x, y), type, value);
 
-                GameObject obj = new GameObject(files[type], tileSize, tileSize);
+                GameObject obj = new GameObject(files[type], tileSize, tileSize);       // creation d'un objet
                 obj.renderer().setZindex(1);
                 obj.transform().setPosition(Vector2.multiply(new Vector2((size-1+y)-2*(x+Math.max(0, y-size+1)), size-y-1), new Vector2(xOffset, yOffset)));
 
                 ui.add(obj);
             }
         }
+
+        // creation des colony
+        int y = 6 + (2*(size -5));
+        map2 = new Colony[y][];
+        for (int i=0; i<y/2; i++){
+            map2[i] = new Colony[7 + 2*i];
+            map2[y-i-1] = new Colony[7 + 2*i];
+        }
+        if (y%2 == 1) map2[y/2+1] = new Colony[7 + y - 1];  // au cas ou il y a un nombre impair de case [y]
+
+        // creation du Colony vides + ajout des Tiles
+        for (int a=0; a<y; a++){
+            for (int b=0; b<map2[a].length; b++){
+                map2[a][b] = new Colony();
+                map2[a][b].add();       // ajouter Tiles
+            }
+        }
+
+
+
 
         /*this.map2 = new Colony[2*size][];
         for(int y = 0; y <= size; y++) {
