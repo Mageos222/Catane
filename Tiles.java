@@ -31,21 +31,24 @@ public class Tiles {
 
         this.type = type;
         this.value = value;
-
-        File file = new File("Images/Jeton"+value+".png");
-        try {
-            BufferedImage originalImage = ImageIO.read(file);
-            Image image = originalImage.getScaledInstance(40, 40, Image.SCALE_SMOOTH);
-            obj.renderer().mix(image);
-        }
-        catch(IOException e) {
-            System.out.println("Error while opening Jeton file " + value + " : " + e);
-        }
     }
 
     public GameObject getObject() { return obj; }
     public int getValue() { return this.value; }
     public int getType() { return this.type; }
+
+    public Image getImage() {
+        File file = new File("Images/Jeton"+value+".png");
+        try {
+            BufferedImage originalImage = ImageIO.read(file);
+            Image image = originalImage.getScaledInstance(40, 40, Image.SCALE_SMOOTH);
+            return image;
+        }
+        catch(IOException e) {
+            System.out.println("Error while opening Jeton file " + value + " : " + e);
+            return null;
+        }
+    }
 
     @Override
     public String toString() {

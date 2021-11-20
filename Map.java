@@ -47,8 +47,11 @@ public class Map {
 
         for(int y = 0; y < 2*size - 1; y++) {
             for(int x = 0; x < 2*size-Math.abs(size-y-1)-1; x++) {
+
+                // TODO : 1 desert, min 2 de chaque type
+
                 int type = rnd.nextInt(6);
-                int value = rnd.nextInt(11)+2;
+                int value = rnd.nextInt(11)+2; // Pas de 7
 
                 Tiles tile = new Tiles(new Vector2(x, y), type, value);
                 for(int i = 2*x; i < 2*x+2; i++) 
@@ -59,6 +62,7 @@ public class Map {
                 GameObject obj = new GameObject(files[type], tileSize, tileSize);       // creation d'un objet
                 obj.renderer().setZindex(1);
                 obj.transform().setPosition(Vector2.multiply(new Vector2((size-1+y)-2*(x+Math.max(0, y-size+1)), size-y-1), new Vector2(xOffset, yOffset)));
+                obj.renderer().mix(tile.getImage());
 
                 ui.add(obj);
             }
