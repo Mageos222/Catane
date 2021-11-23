@@ -14,12 +14,12 @@ public class Map {
 
     public Map(int size, UI ui, Game game) {
         String[] files = {
-            "./Images/wheat.png",
-            "./Images/lumber.png",
-            "./Images/sheep.png",
-            "./Images/ore.png",
-            "./Images/brick.png",
-            "./Images/Desert.png"
+            "./Images/GamePage/wheat.png",
+            "./Images/GamePage/lumber.png",
+            "./Images/GamePage/sheep.png",
+            "./Images/GamePage/ore.png",
+            "./Images/GamePage/brick.png",
+            "./Images/GamePage/Desert.png"
         };
 
         int tileSize = 175;
@@ -39,11 +39,11 @@ public class Map {
             for(int x = 0; x < 2*(size+i)+1; x++) {
                 map[y][x] = new Colony();
 
-                game.addEmptyVillage((x-size-i)*xOffset, (int)((y-size+0.5f)*yOffset+yShift));
+                game.addEmptyVillage((x-size-i)*xOffset, (int)((y-size+0.5f)*yOffset+yShift), x, y);
                 yShift = -yShift;
 
-                if(x != 2*(size+i)) game.addEmptyRoad((x-size-i)*xOffset+xOffset/2, (int)((y-size+0.5f)*yOffset), roadType);
-                if(roadType == 1 && y != 2*size-1) game.addEmptyRoad((x-size-i)*xOffset, (int)((y-size+0.5f)*yOffset)+yOffset/2, 2);
+                if(x != 2*(size+i)) game.addEmptyRoad((x-size-i)*xOffset+xOffset/2, (int)((y-size+0.5f)*yOffset), x, y, roadType);
+                if(roadType == 1 && y != 2*size-1) game.addEmptyRoad((x-size-i)*xOffset, (int)((y-size+0.5f)*yOffset)+yOffset/2, x, y, 2);
                 
                 roadType = (roadType+1)%2;
             }
@@ -83,17 +83,17 @@ public class Map {
                 listType.remove(r);
 
                 Tiles tile = new Tiles(new Vector2(x, y), type, value);
-                for(int i = 2*x; i < 2*x+2; i++) {
+                for(int i = 2*x; i <= 2*x+2; i++) {
                     for(int j = y; j <= y+1; j++){
- 
-                        if(y < size - 1) map[j][i+j].add(tile);
-                        else map[j][i+(j+1)%2].add(tile);
+                        if(y < size - 1) map[j][i+(j-y)].add(tile);
+                        else if(y == size - 1) map[j][i].add(tile);
+                        else map[j][i+(j-y+1)%2].add(tile);
                     }
                 }    
 
                 GameObject obj = new GameObject(files[type], tileSize, tileSize);       // creation d'un objet
                 obj.renderer().setZindex(1);
-                obj.transform().setPosition(Vector2.multiply(new Vector2((size-1+y)-2*(x+Math.max(0, y-size+1)), size-y-1), new Vector2(xOffset, yOffset)));
+                obj.transform().setPosition(Vector2.multiply(new Vector2(2*(x+Math.max(0, y-size+1))-(size-1+y), size-y-1), new Vector2(xOffset, yOffset)));
                 obj.renderer().mix(tile.getImage());
 
                 ui.add(obj);
@@ -101,7 +101,7 @@ public class Map {
         }
     }
 
-    public Colony[][] getMap() { return map; }
+    public Colony getColony(int x, int y) { return map[y][x]; }
 
     @Override
     public String toString() {

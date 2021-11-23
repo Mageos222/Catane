@@ -5,6 +5,8 @@ public class FPSCounter extends Thread {
     private int frames;
     private int fps = 0;
 
+    private boolean print = false;
+
     public FPSCounter(UI ui) {
         this.ui = ui;
     }
@@ -21,10 +23,14 @@ public class FPSCounter extends Thread {
 
             int newFrames = ui.getNbFrame();
             fps = newFrames - frames;
-            System.out.println(fps + " fps");
+            if(print)
+                System.out.println(fps + " fps");
             frames = newFrames;
         }
     }
 
     public int getFPS() { return fps; }
+
+    public void show() { this.print = true; }
+    public void hide() { this.print = false; }
 }
