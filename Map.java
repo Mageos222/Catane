@@ -117,4 +117,49 @@ public class Map {
         return bld.toString();
     }
 
+    public boolean canBuildRoad(int j, int y1, int x1, int y2, int x2){
+        if (map[y1][x1].getVillage() == j || map[y2][x2].getVillage() == j) return true;
+        if (map[y1][x1].haveConn(j) && (map[y1][x1].getVillage() == -1 || map[y1][x1].getVillage() == j)) return true ;
+        if (map[y2][x2].haveConn(j) && (map[y2][x2].getVillage() == -1 || map[y2][x2].getVillage() == j)) return true ;
+        return false;
+    }
+
+    public void buildRoad(int j, int y1, int x1, int y2, int x2){
+        if (y1>y2 || y2>y1){
+            map[y1][x1].setConnSup(j);
+            map[y2][x2].setConnSup(j);
+        }
+
+        if (x1>x2){
+            map[y1][x1].setConnL(j);
+            map[y2][x2].setConnR(j);  
+        }
+
+        if(x2>x1){
+            map[y1][x1].setConnR(j);
+            map[y2][x2].setConnL(j);
+        }
+    }
+
+    public boolean canBuildFirstVillage(int j, int x, int y){
+        if (map[y][x].getVillage() != -2) return false;
+        return true;
+    }
+
+    public boolean canBuildVillage(int j, int x, int y){
+        if (this.canBuildFirstVillage(j,x,y)) return map[y][x].haveConn(j);
+        return false;
+    }
+
+    public void buildVillage(int j, int x, int y){
+        map[y][x].setVillage(j);
+        if (x>0) map[y][x-1].setVillage(-2);
+        if (x<map[y].length-1) map[y][x+1].setVillage(-2);
+
+        if (y >= this.size){           
+            if (y<map.length -1 || x%2 == 0) map[y + 2*((x+1)%2)-1][x+1].setVillage(-2);
+        } else {                                           
+            if (y>0 || x%2 == 0) map[y-1][x + 2*((x+1)%2)-1].setVillage(-2); 
+        }                                                 
+     }
 }
