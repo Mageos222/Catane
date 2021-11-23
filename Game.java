@@ -181,11 +181,11 @@ public class Game extends Thread {
         empty.addComponent(new CircleCollider(empty));
         empty.collider().setOnHoverEnterAction(() -> snap(empty));
         empty.collider().setOnHoverExitAction(() -> unsnap(empty));
-        empty.collider().setOnMouseClickedAction(() -> build(empty, x, y, true, true));
+        empty.collider().setOnMouseClickedAction(() -> build(empty, x, y, 0, 0, true, true));
         ui.add(empty);
     }
 
-    public void addEmptyRoad(int posX, int posY, int x, int y, int i) {
+    public void addEmptyRoad(int posX, int posY, int x1, int y1, int x2, int y2, int i) {
         String[][] imgFiles = { {"Images/Colonies/RoadRightRed.png", "Images/Colonies/RoadRightBlue.png", 
             "Images/Colonies/RoadRightGreen.png", "Images/Colonies/RoadRightYellow.png"}, 
         {"Images/Colonies/RoadLeftRed.png", "Images/Colonies/RoadLeftBlue.png", 
@@ -202,7 +202,7 @@ public class Game extends Thread {
 
         emptyRoad.collider().setOnHoverEnterAction(() -> snap(emptyRoad));
         emptyRoad.collider().setOnHoverExitAction(() -> unsnap(emptyRoad));
-        emptyRoad.collider().setOnMouseClickedAction(() -> build(emptyRoad, x, y, false, false));
+        emptyRoad.collider().setOnMouseClickedAction(() -> build(emptyRoad, x1, y1, x2, y2, false, false));
         ui.add(emptyRoad);
     }
 
@@ -211,30 +211,33 @@ public class Game extends Thread {
         ui.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
     }
 
-    public void build(GameObject object, int x, int y, boolean isVillage, boolean isTown) {
+    public void build(GameObject object, int x1, int y1, int x2, int y2, boolean isVillage, boolean isTown) {
         if(!object.collider().isHover() || !addObject) return;
 
-        if(!isTown && (canBuildRoad || players[turn].possesse(roadCost))) {
+        System.out.println(map.canBuildRoad(turn, y1, x1, y2, x2));
+        if(!isTown && (canBuildRoad || players[turn].possesse(roadCost)) && map.canBuildRoad(turn, y1, x1, y2, x2)) {
             if(!canBuildRoad) {
                 players[turn].pay(roadCost);
                 players[turn].increment(1);
                 updateText();
             }
+            map.buildRoad(turn, y1, x1, y2, x2);
             canBuildRoad = false;
         }
-        else if(isVillage && (canBuildVillage || players[turn].possesse(villageCost))) {
+        else if(isVillage && (canBuildVillage || players[turn].possesse(villageCost) && map.canBuildFirstVillage(turn, x1, y1))) {
             if(!canBuildVillage) {
                 players[turn].pay(villageCost);
                 players[turn].increment(1);
                 updateText();
             }
+            map.buildVillage(turn, x1, y1);
             canBuildVillage = false;
-            players[turn].addColony(map.getColony(x, y));
-            System.out.println("Colony (" + x+";"+y+"):\n"+map.getColony(x, y).toString());
+            players[turn].addColony(map.getColony(x1, y1));
+            System.out.println("Colony (" + x1+";"+y1+"):\n"+map.getColony(x1, y1).toString());
         }
         else if(isTown && players[turn].possesse(townCost)) {
             players[turn].pay(townCost);
-            map.getColony(x, y).upgrade();
+            map.getColony(x1, y1).upgrade();
             updateText();
         }
         else return;
@@ -251,7 +254,7 @@ public class Game extends Thread {
             int actualTurn = turn;
             object.collider().setOnHoverEnterAction(() -> snapUpdate(object, actualTurn));
             object.collider().setOnHoverExitAction(() -> unsnapUpdate(object, actualTurn));
-            object.collider().setOnMouseClickedAction(() -> build(object, x, y, false, true));
+            object.collider().setOnMouseClickedAction(() -> build(object, x1, y1, x2, y2, false, true));
         }
         else {
             if(isTown) {

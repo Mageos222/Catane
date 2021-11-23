@@ -42,8 +42,8 @@ public class Map {
                 game.addEmptyVillage((x-size-i)*xOffset, (int)((y-size+0.5f)*yOffset+yShift), x, y);
                 yShift = -yShift;
 
-                if(x != 2*(size+i)) game.addEmptyRoad((x-size-i)*xOffset+xOffset/2, (int)((y-size+0.5f)*yOffset), x, y, roadType);
-                if(roadType == 1 && y != 2*size-1) game.addEmptyRoad((x-size-i)*xOffset, (int)((y-size+0.5f)*yOffset)+yOffset/2, x, y, 2);
+                if(x != 2*(size+i)) game.addEmptyRoad((x-size-i)*xOffset+xOffset/2, (int)((y-size+0.5f)*yOffset), x, y, x+1, y, roadType);
+                if(roadType == 1 && y != 2*size-1) game.addEmptyRoad((x-size-i)*xOffset, (int)((y-size+0.5f)*yOffset)+yOffset/2, x, y, x, y+1, 2);
                 
                 roadType = (roadType+1)%2;
             }
@@ -154,12 +154,13 @@ public class Map {
     public void buildVillage(int j, int x, int y){
         map[y][x].setVillage(j);
         if (x>0) map[y][x-1].setVillage(-2);
-        if (x<map[y].length-1) map[y][x+1].setVillage(-2);
+        if (x<map[y].length-1) map[y][x+1].setVillage(-2);  
+        
+        if(x%2 == 0 && y < 2*size-1) map[y+1][x+((y < size-1)?1:y<=size?0:-1)].setVillage(-2);
+        if(x%2 == 1 && y > 0) map[y+1][x-((y < size-1)?1:y<=size?0:-1)].setVillage(-2);
 
-        if (y >= this.size){           
-            if (y<map.length -1 || x%2 == 0) map[y + 2*((x+1)%2)-1][x+1].setVillage(-2);
-        } else {                                           
-            if (y>0 || x%2 == 0) map[y-1][x + 2*((x+1)%2)-1].setVillage(-2); 
-        }                                                 
+        //if(x%2==0 && y < size || x%2==1 && y>=size && y > 0) map[y-1][x].setVillage(-2); 
+        //else if(x%2==1 && y < size && y < 2*size-1 || x%2==0 && y>=size) map[y+1][x].setVillage(-2); 
+                                      
      }
 }

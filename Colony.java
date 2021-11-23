@@ -12,6 +12,10 @@ public class Colony {
         this.tiles = new Tiles[0];
         this.village = -1;
 
+        this.connR = -1;
+        this.connL = -1;
+        this.connSup = -1;
+
         tiles = new Tiles[0];
         level = 1;
     }
