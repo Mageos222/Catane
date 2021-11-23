@@ -5,9 +5,11 @@ public class Colony {
     private int connSup;
 
     private Tiles[] tiles;
+    private int level;
 
     public Colony() {
         tiles = new Tiles[0];
+        level = 1;
     }
 
     public void add(Tiles tile){
@@ -25,10 +27,12 @@ public class Colony {
         Ressource res = new Ressource();
         for(Tiles tile : tiles) 
             if((tile.getValue() == value || total) && tile.getType() < 5)
-                res.add(tile.getType(), tile.getLevel());
+                res.add(tile.getType(), level);
 
         return res;
     }
+
+    public void upgrade() { this.level = 2; }
 
     @Override
     public String toString() {

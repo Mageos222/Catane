@@ -1,7 +1,5 @@
 public class Ressource {
 
-    enum Res  { FIELD, FOREST, PASTURE, ROCK, CLAY, DESERT }
-
     private int[] ressource;
 
     public Ressource() {
@@ -11,6 +9,15 @@ public class Ressource {
     public Ressource(int t, int val) {
         this();
         ressource[t] = val;
+    }
+
+    public Ressource(int wheat, int wood, int sheep, int rock, int clay) {
+        this();
+        ressource[0] = wheat;
+        ressource[1] = wood;
+        ressource[2] = sheep;
+        ressource[3] = rock;
+        ressource[4] = clay;
     }
 
     public int getRessource(int t) { return ressource[t]; }
@@ -26,6 +33,10 @@ public class Ressource {
     public void add(Ressource r) {
         for(int i = 0; i < 5; i++) 
             ressource[i] += r.getRessource(i);
+    }
+    public void remove(Ressource r) {
+        for(int i = 0; i < 5; i++) 
+            ressource[i] -= r.getRessource(i);
     }
 
     // 5 getters 

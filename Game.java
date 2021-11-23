@@ -9,14 +9,16 @@ import GameEngine.SpriteRenderer;
 import GameEngine.TextRenderer;
 
 import java.util.List;
-
+import java.util.Random;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.beans.Visibility;
 
 public class Game extends Thread {
     
     private Player[] players;
     private int turn;
+    private boolean turnAction;
 
     private Map map;
     private int size;
@@ -36,6 +38,20 @@ public class Game extends Thread {
     private boolean canBuildVillage;
     private boolean canBuildRoad;
     private boolean ressourceDistrib;
+
+    private final static Ressource roadCost = new Ressource(0, 1, 0, 0, 1);
+    private final static Ressource villageCost = new Ressource(1, 1, 1, 0, 1);
+    private final static Ressource townCost = new Ressource(2, 0, 0, 3, 0);
+
+    private GameObject dice1;
+    private GameObject dice2;
+    private GameObject dice1Small;
+    private GameObject dice2Small;
+
+    private int dice1Value;
+    private int dice2Value;
+
+    private int diceAnim = 0;
 
     public Game(int size) {
         this.size = size;
@@ -95,12 +111,46 @@ public class Game extends Thread {
                 ressourceDistrib = true;
                 for(Player player : players)
                     player.collect();
+                updateText();
+            }
+            Random rnd = new Random();
+            if(turn == 0 && !turnAction && nbTurn >= 2*players.length) {
+                turnAction = true;
+                diceAnim++;
+
+                dice1Value = rnd.nextInt(6)+1;
+                dice2Value = rnd.nextInt(6)+1;
+
+                dice1.renderer().setVisible(true);
+                dice2.renderer().setVisible(true);
+                
+                System.out.println("Value of dice : " + dice1Value + "+" + dice2Value + " => " + (dice1Value+dice2Value));
             }
 
-            if(turn == 0) {
-                for(int j = 0; j < players.length; j++)
-                    for(int i = 0; i < 5; i++) 
-                        ressourceText[j][i].renderer().setImages(String.valueOf(players[j].getRessource(i)));
+            if(diceAnim > 0 && diceAnim < 20) {
+                dice1.renderer().setImage(rnd.nextInt(6));
+                dice2.renderer().setImage(rnd.nextInt(6));
+                diceAnim++;
+            }
+            else if(diceAnim == 20) {
+                dice1.renderer().setImage(dice1Value-1);
+                dice2.renderer().setImage(dice2Value-1);
+                diceAnim++;
+            }
+            else if(diceAnim > 0 && diceAnim < 50) diceAnim++;
+            else if(diceAnim > 0) {
+                diceAnim = 0;
+                dice1.renderer().setVisible(false);
+                dice2.renderer().setVisible(false);
+
+                dice1Small.renderer().setImage(dice1Value-1);
+                dice2Small.renderer().setImage(dice2Value-1);
+                dice1Small.renderer().setVisible(true);
+                dice2Small.renderer().setVisible(true);
+
+                for(Player player : players)
+                    player.collect(dice1Value+dice2Value);
+                updateText();
             }
             
             try {
@@ -112,6 +162,12 @@ public class Game extends Thread {
 
         fps.interrupt();
         System.out.println("Game closed");
+    }
+
+    private void updateText() {
+        for(int j = 0; j < players.length; j++)
+            for(int i = 0; i < 5; i++) 
+                ressourceText[j][i].renderer().setImages(String.valueOf(players[j].getRessource(i)));
     }
 
     public void addEmptyVillage(int posX, int posY, int x, int y) {
@@ -158,11 +214,26 @@ public class Game extends Thread {
     public void build(GameObject object, int x, int y, boolean isVillage, boolean isTown) {
         if(!object.collider().isHover() || !addObject) return;
 
-        if(!isTown && canBuildRoad) canBuildRoad = false;
-        else if(isVillage && canBuildVillage) {
+        if(!isTown && (canBuildRoad || players[turn].possesse(roadCost))) {
+            if(!canBuildRoad) {
+                players[turn].pay(roadCost);
+                updateText();
+            }
+            canBuildRoad = false;
+        }
+        else if(isVillage && (canBuildVillage || players[turn].possesse(villageCost))) {
+            if(!canBuildVillage) {
+                players[turn].pay(villageCost);
+                updateText();
+            }
             canBuildVillage = false;
             players[turn].addColony(map.getColony(x, y));
             System.out.println("Colony (" + x+";"+y+"):\n"+map.getColony(x, y).toString());
+        }
+        else if(isTown && players[turn].possesse(townCost)) {
+            players[turn].pay(townCost);
+            map.getColony(x, y).upgrade();
+            updateText();
         }
         else return;
 
@@ -249,6 +320,7 @@ public class Game extends Thread {
         }
 
         this.profils[turn].transform().scale(1.2);
+        this.turnAction = false;
     }
 
     private void drawCanvas() {
@@ -323,6 +395,44 @@ public class Game extends Thread {
 
         ui.add(pause);
 
+        String[] dice = new String[6];
+        for(int i = 1; i <= 6; i++) dice[i-1] = "Images/GamePage/dice"+i+".png";
+
+        dice1 = new GameObject(dice, 200, 200);
+        dice1.transform().setPosition(-150, 0);
+        dice1.renderer().setZindex(9);
+        dice2 = new GameObject(dice, 200, 200);
+        dice2.transform().setPosition(150, 0);
+        dice2.renderer().setZindex(9);
+
+        dice1Small = new GameObject(dice, 75, 75);
+        dice1Small.transform().setPosition(-750, 0);
+        dice1Small.renderer().setZindex(9);
+        dice1Small.renderer().setAlign(Renderer.Align.CENTER_LEFT);
+        dice2Small = new GameObject(dice, 75, 75);
+        dice2Small.transform().setPosition(-650, 0);
+        dice2Small.renderer().setZindex(9);
+        dice2Small.renderer().setAlign(Renderer.Align.CENTER_LEFT);
+
+        dice1.renderer().setVisible(false);
+        dice2.renderer().setVisible(false);
+        dice1Small.renderer().setVisible(false);
+        dice2Small.renderer().setVisible(false);
+
+        ui.add(dice1);
+        ui.add(dice2);
+        ui.add(dice1Small);
+        ui.add(dice2Small);
+
+        GameObject costCard = new GameObject("Images/GamePage/costCard.png", 240, 310);
+        costCard.transform().setPosition(750, 0);
+        costCard.renderer().setAlign(Renderer.Align.CENTER_LEFT);
+        costCard.renderer().setZindex(9);
+        costCard.addComponent(new BoxCollider(costCard));
+        costCard.collider().setOnHoverEnterAction(() -> focus(costCard, 100));
+        costCard.collider().setOnHoverExitAction(() -> unfocus(costCard, 100));
+        ui.add(costCard);
+
         ui.setBackground("Images/GamePage/Water.png");
 
     }
@@ -350,8 +460,6 @@ public class Game extends Thread {
     public int getTurn() { return turn; }
 
     public static void main(String[] args) {
-        //Game game = new Game(3);
-
         MusicPlayer music = new MusicPlayer("Music/Music.wav");
         //music.loop();
 

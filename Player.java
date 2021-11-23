@@ -29,6 +29,8 @@ public class Player {
     public int getRessource(int i) { 
         return ressources.getRessource(i); 
     }
+    public boolean possesse(Ressource r) { return ressources.contain(r); }
+    public void pay(Ressource r) { ressources.remove(r); }
 
     @Override
     public String toString() {
