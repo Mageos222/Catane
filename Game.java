@@ -114,7 +114,7 @@ public class Game extends Thread {
                 updateText();
             }
             Random rnd = new Random();
-            if(turn == 0 && !turnAction && nbTurn >= 2*players.length) {
+            if(!turnAction && nbTurn >= 2*players.length) {
                 turnAction = true;
                 diceAnim++;
 
@@ -127,17 +127,17 @@ public class Game extends Thread {
                 System.out.println("Value of dice : " + dice1Value + "+" + dice2Value + " => " + (dice1Value+dice2Value));
             }
 
-            if(diceAnim > 0 && diceAnim < 20) {
+            if(diceAnim > 0 && diceAnim < 15) {
                 dice1.renderer().setImage(rnd.nextInt(6));
                 dice2.renderer().setImage(rnd.nextInt(6));
                 diceAnim++;
             }
-            else if(diceAnim == 20) {
+            else if(diceAnim == 15) {
                 dice1.renderer().setImage(dice1Value-1);
                 dice2.renderer().setImage(dice2Value-1);
                 diceAnim++;
             }
-            else if(diceAnim > 0 && diceAnim < 50) diceAnim++;
+            else if(diceAnim > 0 && diceAnim < 30) diceAnim++;
             else if(diceAnim > 0) {
                 diceAnim = 0;
                 dice1.renderer().setVisible(false);
@@ -217,6 +217,7 @@ public class Game extends Thread {
         if(!isTown && (canBuildRoad || players[turn].possesse(roadCost))) {
             if(!canBuildRoad) {
                 players[turn].pay(roadCost);
+                players[turn].increment(1);
                 updateText();
             }
             canBuildRoad = false;
@@ -224,6 +225,7 @@ public class Game extends Thread {
         else if(isVillage && (canBuildVillage || players[turn].possesse(villageCost))) {
             if(!canBuildVillage) {
                 players[turn].pay(villageCost);
+                players[turn].increment(1);
                 updateText();
             }
             canBuildVillage = false;

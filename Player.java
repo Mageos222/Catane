@@ -1,5 +1,4 @@
 import java.util.LinkedList;
-import java.util.List;
 
 public class Player {
 
@@ -7,7 +6,9 @@ public class Player {
     private final boolean bot;
     private Ressource ressources;
 
-    List<Colony> colonies;
+    private int score;
+
+    LinkedList<Colony> colonies;
 
     public Player(String name, boolean bot) {
         this.name = name;
@@ -15,6 +16,8 @@ public class Player {
 
         ressources = new Ressource();
         this.colonies = new LinkedList<>();
+
+        this.score = 0;
     }
 
     public void addColony(Colony c) { this.colonies.add(c); }
@@ -31,6 +34,12 @@ public class Player {
     }
     public boolean possesse(Ressource r) { return ressources.contain(r); }
     public void pay(Ressource r) { ressources.remove(r); }
+
+    public void increment(int i) { 
+        score += i; 
+        if(win()) System.out.println(name + " win");
+    } 
+    public boolean win() { return score >= 10; }
 
     @Override
     public String toString() {
