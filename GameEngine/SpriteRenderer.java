@@ -37,6 +37,18 @@ public class SpriteRenderer extends Renderer {
     }
 
     @Override
+    public void setImages(String image) {
+        BufferedImage[] img = new BufferedImage[1];
+
+        try {
+            img[0] = ImageIO.read(new File(image));
+            this.setImages(img);
+        } catch (IOException e) {
+            System.out.println("Error while opening file " + image + " : " + e);
+        }
+    }
+
+    @Override
     public void addImage(String image) {
         BufferedImage[] actual = getImages();
         BufferedImage[] newArray = new BufferedImage[actual.length+1];

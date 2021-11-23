@@ -19,7 +19,10 @@ public class GameObject {
     public GameObject(String[] files, int width, int height) {
         this.renderer = new SpriteRenderer(this, files);
         this.transform = new Transform(width, height);
+    }
 
+    public GameObject(int width, int height) {
+        this.transform = new Transform(width, height);
     }
 
     public void addComponent(Component component) {

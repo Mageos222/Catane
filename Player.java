@@ -1,3 +1,4 @@
+import java.util.LinkedList;
 import java.util.List;
 
 public class Player {
@@ -11,6 +12,22 @@ public class Player {
     public Player(String name, boolean bot) {
         this.name = name;
         this.bot = bot;
+
+        ressources = new Ressource();
+        this.colonies = new LinkedList<>();
+    }
+
+    public void addColony(Colony c) { this.colonies.add(c); }
+
+    public void collect(int value) {
+        colonies.forEach(c -> ressources.add(c.collect(value)));
+    }
+    public void collect() {
+        colonies.forEach(c -> ressources.add(c.collect()));
+    }
+
+    public int getRessource(int i) { 
+        return ressources.getRessource(i); 
     }
 
     @Override

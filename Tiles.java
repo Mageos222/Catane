@@ -11,31 +11,23 @@ import javax.imageio.ImageIO;
 public class Tiles {
 
     public enum Env { FIELD, FOREST, PASTURE, ROCK, CLAY, DESERT }
-    private static String[] files = {
-        "./Images/wheat.png",
-        "./Images/lumber.png",
-        "./Images/sheep.png",
-        "./Images/ore.png",
-        "./Images/brick.png",
-        "./Images/Desert.png"
-    };
 
-    private GameObject obj;
     private int type;
     private int value;
 
+    private int level;
+
     public Tiles(Vector2 position, int type, int value)
     {
-        this.obj = new GameObject(files[type], 100, 100);
-        this.obj.transform().setPosition(position.getX(), position.getY());
-
         this.type = type;
         this.value = value;
+
+        this.level = 1;
     }
 
-    public GameObject getObject() { return obj; }
     public int getValue() { return this.value; }
     public int getType() { return this.type; }
+    public int getLevel() { return this.level; }
 
     public Image getImage() {
         File file = new File("Images/Jeton/Jeton"+value+".png");

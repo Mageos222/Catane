@@ -60,6 +60,7 @@ public abstract class Renderer implements Component {
     public BufferedImage[] getImages() { return this.images; }
  
     public void setImages(BufferedImage[] originals) { this.images = originals.clone(); }
+    public abstract void setImages(String originals);
     public BufferedImage getImage() { return images[renderIndex]; }
 
     public void setAlign(Align align) { this.align = align; }
