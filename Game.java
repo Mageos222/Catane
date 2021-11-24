@@ -224,7 +224,8 @@ public class Game extends Thread {
             map.buildRoad(turn, y1, x1, y2, x2);
             canBuildRoad = false;
         }
-        else if(isVillage && (canBuildVillage || players[turn].possesse(villageCost) && map.canBuildFirstVillage(turn, x1, y1))) {
+        else if(isVillage && (canBuildVillage&& map.canBuildFirstVillage(turn, x1, y1) || 
+                            players[turn].possesse(villageCost) && map.canBuildVillage(turn, x1, y2))) {
             if(!canBuildVillage) {
                 players[turn].pay(villageCost);
                 players[turn].increment(1);

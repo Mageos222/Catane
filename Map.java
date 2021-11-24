@@ -42,8 +42,11 @@ public class Map {
                 game.addEmptyVillage((x-size-i)*xOffset, (int)((y-size+0.5f)*yOffset+yShift), x, y);
                 yShift = -yShift;
 
+                int nextX = x+(x%2==1?-1:y==size||y==size-1?0:1);
+                int nextY = y+(x%2==0&&y>=size||x%2==1&&y<size&&y>0||y>=map.length-1?-1:1);
+
                 if(x != 2*(size+i)) game.addEmptyRoad((x-size-i)*xOffset+xOffset/2, (int)((y-size+0.5f)*yOffset), x, y, x+1, y, roadType);
-                if(roadType == 1 && y != 2*size-1) game.addEmptyRoad((x-size-i)*xOffset, (int)((y-size+0.5f)*yOffset)+yOffset/2, x, y, x, y+1, 2);
+                if(roadType == 1 && y != 2*size-1) game.addEmptyRoad((x-size-i)*xOffset, (int)((y-size+0.5f)*yOffset)+yOffset/2, x, y, nextX, nextY, 2);
                 
                 roadType = (roadType+1)%2;
             }
@@ -118,10 +121,13 @@ public class Map {
     }
 
     public boolean canBuildRoad(int j, int y1, int x1, int y2, int x2){
-        if (map[y1][x1].getVillage() == j || map[y2][x2].getVillage() == j) return true;
-        if (map[y1][x1].haveConn(j) && (map[y1][x1].getVillage() == -1 || map[y1][x1].getVillage() == j)) return true ;
-        if (map[y2][x2].haveConn(j) && (map[y2][x2].getVillage() == -1 || map[y2][x2].getVillage() == j)) return true ;
-        return false;
+        //if (map[y1][x1].getVillage() == j || map[y2][x2].getVillage() == j) return true;
+        //if (map[y1][x1].haveConn(j) && (map[y1][x1].getVillage() == -1 || map[y1][x1].getVillage() == j)) return true ;
+        //if (map[y2][x2].haveConn(j) && (map[y2][x2].getVillage() == -1 || map[y2][x2].getVillage() == j)) return true ;
+        return (map[y1][x1].getVillage() == j || map[y2][x2].getVillage() == j) ||
+            (map[y1][x1].haveConn(j) || map[y2][x2].haveConn(j)) &&
+            (map[y1][x1].getVillage() < 0 || map[y1][x1].getVillage() == j || 
+            map[y2][x2].getVillage() < 0 || map[y2][x2].getVillage() == j);
     }
 
     public void buildRoad(int j, int y1, int x1, int y2, int x2){
@@ -130,7 +136,7 @@ public class Map {
             map[y2][x2].setConnSup(j);
         }
 
-        if (x1>x2){
+        if (x1<x2){
             map[y1][x1].setConnL(j);
             map[y2][x2].setConnR(j);  
         }
@@ -142,8 +148,7 @@ public class Map {
     }
 
     public boolean canBuildFirstVillage(int j, int x, int y){
-        if (map[y][x].getVillage() != -2) return false;
-        return true;
+        return map[y][x].getVillage() != -2;
     }
 
     public boolean canBuildVillage(int j, int x, int y){
@@ -155,12 +160,18 @@ public class Map {
         map[y][x].setVillage(j);
         if (x>0) map[y][x-1].setVillage(-2);
         if (x<map[y].length-1) map[y][x+1].setVillage(-2);  
-        
-        if(x%2 == 0 && y < 2*size-1) map[y+1][x+((y < size-1)?1:y<=size?0:-1)].setVillage(-2);
-        if(x%2 == 1 && y > 0) map[y+1][x-((y < size-1)?1:y<=size?0:-1)].setVillage(-2);
 
-        //if(x%2==0 && y < size || x%2==1 && y>=size && y > 0) map[y-1][x].setVillage(-2); 
-        //else if(x%2==1 && y < size && y < 2*size-1 || x%2==0 && y>=size) map[y+1][x].setVillage(-2); 
+        if (x%2 == 0 && y > this.size) map[y-1][x+1].setVillage(-2);
+        if (x%2 == 0 && y < this.size-1) map[y+1][x+1].setVillage(-2);
+        if (x%2 == 0 && y == this.size) map[y-1][x].setVillage(-2);
+        if (x%2 == 0 && y == this.size-1) map[y+1][x].setVillage(-2);
+
+        if (x%2 == 1 && y > this.size && y<map.length-1) map[y+1][x-1].setVillage(-2);
+        if (x%2 == 1 && y < this.size-1 && y>0) map[y-1][x-1].setVillage(-2);
+        if (x%2 == 1 && y == this.size) map[y+1][x-1].setVillage(-2);
+        if (x%2 == 1 && y == this.size-1) map[y-1][x-1].setVillage(-2);
+
+        map[y+(x%2==0&&y>=size||x%2==1&&y<size&&y>0||y>=map.length-1?-1:1)][x+(x%2==1?-1:y==size||y==size-1?0:1)].setVillage(-2);
                                       
-     }
+    }
 }
