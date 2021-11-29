@@ -3,6 +3,7 @@ import GameEngine.Vector2;
 import java.util.ArrayList;
 import java.util.Random;
 
+import GameEngine.CircleCollider;
 import GameEngine.GameObject;
 import GameEngine.UI;
 
@@ -12,7 +13,7 @@ public class Map {
 
     private Colony[][] map;
 
-    public Map(int size, UI ui, Game game) {
+    public Map(int size, UI ui, Canvas canvas, Controller controller) {
         String[] files = {
             "./Images/GamePage/wheat.png",
             "./Images/GamePage/lumber.png",
@@ -39,14 +40,14 @@ public class Map {
             for(int x = 0; x < 2*(size+i)+1; x++) {
                 map[y][x] = new Colony();
 
-                game.addEmptyVillage((x-size-i)*xOffset, (int)((y-size+0.5f)*yOffset+yShift), x, y);
+                canvas.addEmptyVillage((x-size-i)*xOffset, (int)((y-size+0.5f)*yOffset+yShift), x, y);
                 yShift = -yShift;
 
                 int nextX = x+(x%2==1?-1:y==size||y==size-1?0:1);
                 int nextY = y+(x%2==0&&y>=size||x%2==1&&y<size&&y>0||y>=map.length-1?-1:1);
 
-                if(x != 2*(size+i)) game.addEmptyRoad((x-size-i)*xOffset+xOffset/2, (int)((y-size+0.5f)*yOffset), x, y, x+1, y, roadType);
-                if(roadType == 1 && y != 2*size-1) game.addEmptyRoad((x-size-i)*xOffset, (int)((y-size+0.5f)*yOffset)+yOffset/2, x, y, nextX, nextY, 2);
+                if(x != 2*(size+i)) canvas.addEmptyRoad((x-size-i)*xOffset+xOffset/2, (int)((y-size+0.5f)*yOffset), x, y, x+1, y, roadType);
+                if(roadType == 1 && y != 2*size-1) canvas.addEmptyRoad((x-size-i)*xOffset, (int)((y-size+0.5f)*yOffset)+yOffset/2, x, y, nextX, nextY, 2);
                 
                 roadType = (roadType+1)%2;
             }
@@ -85,21 +86,46 @@ public class Map {
                 int type = listType.get(r);
                 listType.remove(r);
 
+                Colony[] adja = new Colony[6];
+                int counter = 0;
+
                 Tiles tile = new Tiles(new Vector2(x, y), type, value);
                 for(int i = 2*x; i <= 2*x+2; i++) {
                     for(int j = y; j <= y+1; j++){
-                        if(y < size - 1) map[j][i+(j-y)].add(tile);
-                        else if(y == size - 1) map[j][i].add(tile);
-                        else map[j][i+(j-y+1)%2].add(tile);
+                        if(y < size - 1) {
+                            map[j][i+(j-y)].add(tile);
+                            adja[counter] = map[j][i+(j-y)];
+                        }
+                        else if(y == size - 1) {
+                            map[j][i].add(tile);
+                            adja[counter] = map[j][i];
+                        }
+                        else {
+                            map[j][i+(j-y+1)%2].add(tile);
+                            adja[counter] = map[j][i+(j-y+1)%2];
+                        }
+                        counter++;
                     }
                 }    
 
+                Vector2 pos = Vector2.multiply(new Vector2(2*(x+Math.max(0, y-size+1))-(size-1+y), size-y-1), new Vector2(xOffset, yOffset));
+
                 GameObject obj = new GameObject(files[type], tileSize, tileSize);       // creation d'un objet
                 obj.renderer().setZindex(1);
-                obj.transform().setPosition(Vector2.multiply(new Vector2(2*(x+Math.max(0, y-size+1))-(size-1+y), size-y-1), new Vector2(xOffset, yOffset)));
+                obj.transform().setPosition(pos);
                 obj.renderer().mix(tile.getImage());
+                
+                obj.addComponent(new CircleCollider(obj));
+                obj.collider().setOnHoverEnterAction(() -> controller.moveVoleur(pos.getX(), pos.getY()));
+                obj.collider().setOnHoverExitAction(() -> { });
+                obj.collider().setOnMouseClickedAction(() -> controller.putVoleur(adja));
 
                 ui.add(obj);
+
+                if(type == 5) { 
+                    controller.moveVoleur(pos.getX(), pos.getY());
+                    controller.putVoleur(adja);
+                }
             }
         }
     }
@@ -161,7 +187,7 @@ public class Map {
         if (x>0) map[y][x-1].setVillage(-2);
         if (x<map[y].length-1) map[y][x+1].setVillage(-2);  
 
-        if (x%2 == 0 && y > this.size) map[y-1][x+1].setVillage(-2);
+        /*if (x%2 == 0 && y > this.size) map[y-1][x+1].setVillage(-2);
         if (x%2 == 0 && y < this.size-1) map[y+1][x+1].setVillage(-2);
         if (x%2 == 0 && y == this.size) map[y-1][x].setVillage(-2);
         if (x%2 == 0 && y == this.size-1) map[y+1][x].setVillage(-2);
@@ -169,9 +195,15 @@ public class Map {
         if (x%2 == 1 && y > this.size && y<map.length-1) map[y+1][x-1].setVillage(-2);
         if (x%2 == 1 && y < this.size-1 && y>0) map[y-1][x-1].setVillage(-2);
         if (x%2 == 1 && y == this.size) map[y+1][x-1].setVillage(-2);
-        if (x%2 == 1 && y == this.size-1) map[y-1][x-1].setVillage(-2);
+        if (x%2 == 1 && y == this.size-1) map[y-1][x-1].setVillage(-2);*/
 
         map[y+(x%2==0&&y>=size||x%2==1&&y<size&&y>0||y>=map.length-1?-1:1)][x+(x%2==1?-1:y==size||y==size-1?0:1)].setVillage(-2);
                                       
+    }
+
+    public void resetBlocked() {
+        for(Colony[] colonies : map)  
+            for(Colony colony : colonies)
+                colony.setBlocked(false);
     }
 }

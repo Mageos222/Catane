@@ -46,7 +46,11 @@ public abstract class Renderer implements Component {
         images[0] = res;
     }
 
-    public void setVisible(boolean v) { this.visible = v; }
+    public void setVisible(boolean v) { 
+        this.visible = v; 
+        for(GameObject child : parent.getChildren()) 
+            child.renderer().setVisible(v); 
+    }
     public boolean isVisible() { return this.visible; }
 
     public void setZindex(int z) { zIndex = z; }
@@ -63,7 +67,10 @@ public abstract class Renderer implements Component {
     public abstract void setImages(String originals);
     public BufferedImage getImage() { return images[renderIndex]; }
 
-    public void setAlign(Align align) { this.align = align; }
+    public void setAlign(Align align) { 
+        this.align = align; 
+        parent.transform().setAlign(align.getValue()); 
+    }
     public int getAlign() { return align.getValue(); }
 
     public int getWidth() { return images[0].getWidth(); }

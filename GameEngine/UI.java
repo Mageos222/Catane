@@ -16,8 +16,8 @@ public class UI extends Canvas {
 
     private Frame f;
 
-    private final int WIDTH;
-    private final int HEIGHT;
+    private static final int WIDTH = 1920;
+    private static final int HEIGHT = 1080;
     private final double RATIO;
 
     private int screenWidth;
@@ -36,13 +36,11 @@ public class UI extends Canvas {
     private int nbFrame = 0;
     private int clikFrameTime = 0;
 
-    public UI (int width, int height) {
-        this.WIDTH = width;
-        this.HEIGHT = height;
+    public UI () {
         this.RATIO = (double)WIDTH/HEIGHT;
 
-        this.screenWidth = width;
-        this.screenHeight = height;
+        this.screenWidth = WIDTH;
+        this.screenHeight = HEIGHT;
 
         setBackground (Color.CYAN);    
         setSize(WIDTH, HEIGHT); 
@@ -169,10 +167,8 @@ public class UI extends Canvas {
         return r;
     }
 
-    public Point getCenterPosition(int x, int y) {
-        Point p = new Point();
-        p.setLocation(x+WIDTH/2f, y+HEIGHT/2f);
-        return p;
+    public static Vector2 getCenterPosition(int x, int y) {
+        return new Vector2((int)(x+WIDTH/2f), (int)(y+HEIGHT/2f));
     }
     
     public boolean isActive() {
@@ -251,11 +247,12 @@ public class UI extends Canvas {
         int[] shiftY = { 0, (int)(sHeight/2f), sHeight};
 
         for(GameObject gameObject : gameObjects) {
-            Point pos = getCenterPosition(gameObject.transform().getPosition().getX(), gameObject.transform().getPosition().getY());
+            Vector2 pos = getCenterPosition(gameObject.transform().getPosition().getX(), gameObject.transform().getPosition().getY());
 
             gameObject.transform().setRelativSize(r);
             gameObject.transform().setRelativPosition((int)(pos.getX()*r+shiftX[gameObject.renderer().getAlign()%3]), 
                                                       (int)(pos.getY()*r+shiftY[gameObject.renderer().getAlign()/3]));
+            gameObject.transform().setRelativ(shiftX, shiftY, r);
         }
 
         isRescaled = false;

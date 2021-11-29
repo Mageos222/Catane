@@ -7,7 +7,7 @@ public class LoadingPage extends Thread {
     UI ui;
 
     public LoadingPage(int posX, int posY, int width, int height) {
-        ui = new UI(1920, 1080);
+        ui = new UI();
         ui.setDimension(width, height);
         ui.setLocation(posX, posY);
         ui.setBackground("Images/Buttons/WoodBack.jpg");

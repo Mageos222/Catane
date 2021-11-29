@@ -1,5 +1,7 @@
 package GameEngine;
 
+import GameEngine.Renderer.Align;
+
 public class Transform {
 
     private Vector2 position;
@@ -9,6 +11,10 @@ public class Transform {
     private Vector2 relativSize;
 
     private double ratio;
+    private int align = 4;
+
+    private int[] shiftX;
+    private int[] shiftY;
 
     public Transform(int width, int height) {
         this.position = new Vector2(0, 0);
@@ -18,33 +24,54 @@ public class Transform {
         this.relativSize = new Vector2(width, height);
     }
 
+    public void setRelativ(int[] shiftX, int[] shiftY, double r) {
+        this.shiftX = shiftX;
+        this.shiftY = shiftY;
+        this.ratio = r;
+
+        //applyRelativ();
+    }
+
+    public void applyRelativ() {
+        try {
+            Vector2 pos = UI.getCenterPosition(position.getX(), position.getY());
+
+            this.relativSize = this.size.multiply(ratio).translate(1, 1);
+            this.relativPosition = new Vector2((int)(pos.getX()*ratio+shiftX[align%3]), (int)(pos.getY()*ratio+shiftY[align/3]));
+        }
+        catch(NullPointerException e) {
+            this.relativSize = size.copy();
+            this.relativPosition = position.copy();
+        }
+    }
+
     public void translate(int x, int y) { 
         this.position = this.position.translate(x, -y); 
-        this.relativPosition = this.relativPosition.translate((int)(x*ratio), (int)(y*ratio));
+        applyRelativ();
     }
 
     public void scale(int x, int y) { 
         this.size = this.size.translate(x, y); 
-        calculateRelativSize();
+        applyRelativ();
     }
     public void scale(double n) { 
         this.size = this.size.multiply(n); 
-        calculateRelativSize();
+        applyRelativ();
     }
 
     public void setPosition(int x, int y) {
         this.position = new Vector2(x, -y);
-        this.relativPosition = Vector2.add(this.position, new Vector2(-x, -y)).multiply(ratio);
+        applyRelativ();
     }
 
     public void setPosition(Vector2 pos) {
         this.position = pos.copy();
-        this.relativPosition = Vector2.add(this.position, pos.multiply(-ratio));
+        applyRelativ();
     }
 
     public void setSize(int w, int h) {
         this.size = new Vector2(w, h);
-        calculateRelativSize();
+        applyRelativ();
     }
 
     public void setRelativPosition(int x, int y) {
@@ -66,4 +93,6 @@ public class Transform {
     public Vector2 getRelativPosition() { return this.relativPosition; }
     public Vector2 getSize() { return this.size; }
     public Vector2 getRelativSize() { return this.relativSize; }
+
+    public void setAlign(int a) { this.align = a; }
 }

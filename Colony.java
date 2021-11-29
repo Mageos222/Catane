@@ -8,6 +8,8 @@ public class Colony {
     private Tiles[] tiles;
     private int level;
 
+    private boolean isBlocked;
+
     public Colony() {
         this.tiles = new Tiles[0];
         this.village = -1;
@@ -69,6 +71,8 @@ public class Colony {
 
     private Ressource collect(int value, boolean total) {
         Ressource res = new Ressource();
+        if(isBlocked) return res; 
+        
         for(Tiles tile : tiles) 
             if((tile.getValue() == value || total) && tile.getType() < 5)
                 res.add(tile.getType(), level);
@@ -77,6 +81,9 @@ public class Colony {
     }
 
     public void upgrade() { this.level = 2; }
+
+    public void setBlocked(boolean v) { this.isBlocked = v; }
+    public boolean isBlocked() { return this.isBlocked; }
 
     @Override
     public String toString() {

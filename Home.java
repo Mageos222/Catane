@@ -27,10 +27,10 @@ public class Home extends Thread {
     private GameObject[] botButtons;
 
     private int nbPlayer = 3;
-    private boolean[] bot; 
+    private boolean[] bot;
 
     public Home(Game game) {
-        ui = new UI(1920, 1080);
+        ui = new UI();
         ui.setDimension(720, 480);
         ui.setBackground("Images/Buttons/WoodBack.jpg");
 
@@ -38,7 +38,7 @@ public class Home extends Thread {
     }
 
     public Home(Game game, int w, int h, int x, int y) {
-        ui = new UI(1920, 1080);
+        ui = new UI();
         ui.setDimension(w, h);
         ui.setLocation(x, y);
         ui.setBackground("Images/Buttons/WoodBack.jpg");
@@ -167,18 +167,12 @@ public class Home extends Thread {
 
     public void run() {
         while(ui.isActive()) {
-            List<UI.Event> events = ui.nextFrame();
-
-            for(UI.Event event : events) {
-                if(event == UI.Event.MOUSE_RIGHT_CLICK) {
-                    //ui.setCursor(Cursor.getDefaultCursor());
-                }
-            }
+            ui.nextFrame();
             
             try {
                 sleep(50);
             } catch (InterruptedException e) {
-                break;
+                Thread.currentThread().interrupt();
             }
         }
 
