@@ -129,7 +129,9 @@ public class UI extends Canvas {
             if(object.collider() == null || !object.collider().isActiv()) continue;
             Collider obj = object.collider();
 
-            if(obj.isOn(mousePos) && (res == null || obj.distanceFrom(mousePos) < res.distanceFrom(mousePos))) {
+            if(obj.isOn(mousePos) && (res == null || object.renderer().getZindex() > res.getParent().renderer().getZindex() 
+                    || object.renderer().getZindex() == res.getParent().renderer().getZindex() && 
+                        (obj.distanceFrom(mousePos) < res.distanceFrom(mousePos)))) {
                 if(res != null && res.isHover()) {
                     res.onHoverExit();
                     res.setHover(false);
@@ -200,7 +202,7 @@ public class UI extends Canvas {
             int i = 0;
             while(i < renderQueu.size()) {
                 GameObject gameObject = renderQueu.get(i);
-                if(!gameObject.renderer().isVisible()) {
+                if(gameObject.renderer() == null || !gameObject.renderer().isVisible()) {
                     renderQueu.remove(i);
                     continue;
                 }

@@ -28,7 +28,7 @@ public abstract class Renderer implements Component {
     private int animSpeed = 1;
     private int nextFrame;
 
-    public Renderer(GameObject parent) {
+    protected Renderer(GameObject parent) {
         this.parent = parent;
 
         this.visible = true;

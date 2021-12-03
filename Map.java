@@ -15,12 +15,12 @@ public class Map {
 
     public Map(int size, UI ui, Canvas canvas, Controller controller) {
         String[] files = {
-            "./Images/GamePage/wheat.png",
-            "./Images/GamePage/lumber.png",
-            "./Images/GamePage/sheep.png",
-            "./Images/GamePage/ore.png",
-            "./Images/GamePage/brick.png",
-            "./Images/GamePage/Desert.png"
+            "Images/GamePage/wheat.png",
+            "Images/GamePage/lumber.png",
+            "Images/GamePage/sheep.png",
+            "Images/GamePage/ore.png",
+            "Images/GamePage/brick.png",
+            "Images/GamePage/Desert.png"
         };
 
         int tileSize = 175;

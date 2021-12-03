@@ -132,7 +132,7 @@ public class Home extends Thread {
 
         botButtons = new GameObject[4];
         for(int i = 0; i < 4; i++) {
-            botButtons[i] = new GameObject(new String[] {"Images/Buttons/PlayerButton1.png", "Images/Buttons/PlayerButton2png.png", 
+            botButtons[i] = new GameObject(new String[] {"Images/Buttons/playerButton1.png", "Images/Buttons/PlayerButton2png.png", 
                                                     "Images/Buttons/BotButton1.png", "Images/Buttons/BotButton2.png"}, 300, 100);
             botButtons[i].transform().setPosition(-800+400*i, -300);
             botButtons[i].renderer().setVisible(false);

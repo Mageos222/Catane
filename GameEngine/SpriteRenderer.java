@@ -1,10 +1,7 @@
 package GameEngine;
 
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-
-import javax.imageio.ImageIO;
+import java.io.FileNotFoundException;
 
 public class SpriteRenderer extends Renderer {
     
@@ -14,10 +11,10 @@ public class SpriteRenderer extends Renderer {
         BufferedImage[] img = new BufferedImage[1];
 
         try {
-            img[0] = ImageIO.read(new File(image));
+            img[0] = RessourceManager.getImage(image);
             this.setImages(img);
-        } catch (IOException e) {
-            System.out.println("Error while opening file " + image + " : " + e);
+        } catch (FileNotFoundException e) {
+            printError(e, image);
         }
     }
 
@@ -28,10 +25,10 @@ public class SpriteRenderer extends Renderer {
 
         for(int i = 0; i < images.length; i++) {
             try {
-                img[i] = ImageIO.read(new File(images[i]));
+                img[i] = RessourceManager.getImage(images[i]);
                 this.setImages(img);
-            } catch (IOException e) {
-                System.out.println("Error while opening file " + images[i] + " : "  + e);
+            } catch (FileNotFoundException e) {
+                printError(e, images[i]);
             }
         }
     }
@@ -41,10 +38,10 @@ public class SpriteRenderer extends Renderer {
         BufferedImage[] img = new BufferedImage[1];
 
         try {
-            img[0] = ImageIO.read(new File(image));
+            img[0] = RessourceManager.getImage(image);
             this.setImages(img);
-        } catch (IOException e) {
-            System.out.println("Error while opening file " + image + " : " + e);
+        } catch (FileNotFoundException e) {
+            printError(e, image);
         }
     }
 
@@ -56,10 +53,15 @@ public class SpriteRenderer extends Renderer {
         for(int i = 0; i < actual.length; i++) newArray[i] = actual[i];
 
         try {
-            newArray[actual.length] = ImageIO.read(new File(image));
+            newArray[actual.length] = RessourceManager.getImage(image);
             this.setImages(newArray);
-        } catch (IOException e) {
-            System.out.println("Error while opening file " + image + " : " + e);
+        } catch (FileNotFoundException e) {
+            printError(e, image);
         }
+    }
+
+    private void printError(Exception e, String image) {
+        System.out.println("File " + image + " not found");
+        e.printStackTrace();
     }
 }

@@ -1,4 +1,5 @@
 import GameEngine.*;
+import GameEngine.RessourceManager;
 
 import java.util.List;
 import java.util.Random;
@@ -177,7 +178,9 @@ public class Game extends Thread {
 
     public static void main(String[] args) {
         MusicPlayer music = new MusicPlayer("Music/Music.wav");
-        music.loop();
+        //music.loop();
+
+        RessourceManager.load("Images");
 
         Home home = new Home(new Game(3));
         home.start();

@@ -1,7 +1,5 @@
 package GameEngine;
 
-import GameEngine.Renderer.Align;
-
 public class Transform {
 
     private Vector2 position;
@@ -28,8 +26,6 @@ public class Transform {
         this.shiftX = shiftX;
         this.shiftY = shiftY;
         this.ratio = r;
-
-        //applyRelativ();
     }
 
     public void applyRelativ() {
