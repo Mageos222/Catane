@@ -33,6 +33,8 @@ public abstract class Renderer implements Component {
 
         this.visible = true;
         this.align = Align.CENTER;
+
+        this.images = new BufferedImage[0];
     }
 
     public void mix(Image img) {
@@ -51,7 +53,7 @@ public abstract class Renderer implements Component {
         for(GameObject child : parent.getChildren()) 
             child.renderer().setVisible(v); 
     }
-    public boolean isVisible() { return this.visible; }
+    public boolean isVisible() { return this.images.length > 0 && this.visible; }
 
     public void setZindex(int z) { zIndex = z; }
     public int getZindex() { return zIndex; }

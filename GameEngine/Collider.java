@@ -14,9 +14,7 @@ public abstract class Collider implements Component {
 
     protected Collider(GameObject parent) {    
         this.parent = parent;
-    }
 
-    public void init() {
         this.onHoverEnter = () -> { };
         this.onHoverExit = () -> { };
         this.onMouseClicked = () -> { };
@@ -27,7 +25,12 @@ public abstract class Collider implements Component {
     public abstract boolean isOn(Point p);
     public abstract double distanceFrom(Point p);
 
-    public void setActiv(boolean activ) { this.activ = activ; }
+    public void setActiv(boolean activ) { 
+        this.activ = activ;  
+        for(GameObject obj : parent.getChildren()) 
+            if(obj.collider() != null)
+                obj.collider().setActiv(activ);
+    }
     public boolean isActiv() { return activ; }
 
     public void setOnHoverEnterAction(Action action) { this.onHoverEnter = action; }

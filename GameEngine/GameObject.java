@@ -30,6 +30,7 @@ public class GameObject {
     }
 
     public GameObject(int width, int height) {
+        this.renderer = new SpriteRenderer(this);
         this.transform = new Transform(width, height);
         this.children = new ArrayList<>();
     }

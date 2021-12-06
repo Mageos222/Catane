@@ -34,6 +34,13 @@ public class Player {
     }
     public boolean possesse(Ressource r) { return ressources.contain(r); }
     public void pay(Ressource r) { ressources.remove(r); }
+    public void receive(Ressource r) { ressources.add(r); }
+
+    public boolean isBlocked() { 
+        for(Colony col : colonies) 
+            if(col.isBlocked()) return true;
+        return false;
+     }
 
     public void increment(int i) { 
         score += i; 

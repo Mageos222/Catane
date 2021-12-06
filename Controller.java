@@ -1,4 +1,3 @@
-import GameEngine.UI;
 import GameEngine.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -18,7 +17,17 @@ public class Controller {
     private final Ressource villageCost = new Ressource(1, 1, 1, 0, 1);
     private final Ressource townCost = new Ressource(2, 0, 0, 3, 0);
 
+    private Player[] dealPlayer;
+    private int maxDeal;
+    private Ressource[] dealVal;
+    private int dealTurn;
+
     private GameObject tower;
+
+    private GameObject[] ressourceCard;
+    private int selectedPlayer = -1;
+
+    private boolean steal;
 
     public Controller(Game g, UI u) {
         this.game = g;
@@ -31,6 +40,13 @@ public class Controller {
         String[] towers = {"Images/Colonies/townRed.png","Images/Colonies/townBlue.png", 
             "Images/Colonies/townGreen.png", "Images/Colonies/townYellow.png"};
         tower = new GameObject(towers, 40, 40);
+
+        this.dealVal = new Ressource[2];
+        dealVal[0] = new Ressource();
+        dealVal[1] = new Ressource();
+
+        this.dealPlayer = new Player[2];
+        this.ressourceCard = new GameObject[0];
     }
 
     public void setCanvas(Canvas c) { this.canvas = c; }
@@ -58,9 +74,10 @@ public class Controller {
             }
             game.getMap().buildRoad(game.getTurn(), y1, x1, y2, x2);
             canBuildRoad = false;
+            System.out.println("road");
         }
-        else if(isVillage && (canBuildVillage&& game.getMap().canBuildFirstVillage(game.getTurn(), x1, y1) || 
-                            game.getPlayer()[game.getTurn()].possesse(villageCost) && game.getMap().canBuildVillage(game.getTurn(), x1, y2))) {
+        else if(isVillage && ((canBuildVillage && game.getMap().canBuildFirstVillage(game.getTurn(), x1, y1)) || 
+                            (game.getPlayer()[game.getTurn()].possesse(villageCost) && game.getMap().canBuildVillage(game.getTurn(), x1, y1)))) {
             if(!canBuildVillage) {
                 game.getPlayer()[game.getTurn()].pay(villageCost);
                 game.getPlayer()[game.getTurn()].increment(1);
@@ -71,10 +88,11 @@ public class Controller {
             game.getPlayer()[game.getTurn()].addColony(game.getMap().getColony(x1, y1));
             System.out.println("Colony (" + x1+";"+y1+"):\n"+game.getMap().getColony(x1, y1).toString());
         }
-        else if(isTown && game.getPlayer()[game.getTurn()].possesse(townCost)) {
+        else if(isTown && !isVillage && game.getPlayer()[game.getTurn()].possesse(townCost)) {
             game.getPlayer()[game.getTurn()].pay(townCost);
             game.getMap().getColony(x1, y1).upgrade();
             updateText();
+            System.out.println("town");
         }
         else return;
 
@@ -199,6 +217,149 @@ public class Controller {
             colony.setBlocked(true);
 
         voleur = false;
+        steal();
+    }
+
+    public void addValueToDealProp(int val) {
+        dealVal[dealTurn].add(val, 1);
+
+        if((dealPlayer[dealTurn] != null && !dealPlayer[dealTurn].possesse(dealVal[dealTurn])) || dealVal[dealTurn].sum() > maxDeal) {
+            dealVal[dealTurn].add(val, -1);
+            return;
+        }
+
+        canvas.getSignTexts()[val].renderer().setImages(String.valueOf(dealVal[dealTurn].getRessource(val)));
+    }
+
+    public void openDeal() {
+        if(canvas.getSign().renderer().isVisible()) return;
+
+        showDeal();
+
+        maxDeal = 5;
+        dealTurn = 0;
+        dealPlayer[0] = game.getPlayer()[game.getTurn()];
+        dealPlayer[1] = null;
+
+        canvas.getSignInfo().renderer().setImages("What do you want to exchange?");
+    }
+
+    public void steal() {
+
+        boolean exist = false;
+        for(int i = 0; i < game.getPlayer().length; i++) 
+            if(i != game.getTurn() && game.getPlayer()[i].isBlocked()) {
+                exist = true;
+                break;
+            }
+        if(!exist) return;
+
+        showDeal();
+
+        maxDeal = 1;
+        dealTurn = 1;
+        dealPlayer[0] = game.getPlayer()[game.getTurn()];
+        dealPlayer[1] = null;
+
+        steal = true;
+    }
+
+    private void showDeal() {
+        if(canvas.getSign() == null) return;
+        canvas.getSign().renderer().setVisible(true);
+        canvas.getPlayerChoice().renderer().setVisible(false);
+        canvas.getSign().collider().setActiv(true);
+        canvas.getPlayerChoice().collider().setActiv(false);
+
+        for(GameObject obj : canvas.getSignTexts())
+            obj.renderer().setImages("0");
+    }
+
+    public void resetDeal() {
+        dealVal[dealTurn] = new Ressource();
+        showDeal();
+    }
+
+    public void validDeal() {
+        if(dealTurn == 1 && !dealVal[dealTurn].equals(new Ressource())) {
+            canvas.getRessourceChoice().renderer().setVisible(false);
+            canvas.getPlayerChoice().renderer().setVisible(true);
+            canvas.getRessourceChoice().collider().setActiv(false);
+            canvas.getPlayerChoice().collider().setActiv(true);
+
+            String[] file = { "Images/GamePage/wheatCard.png", "Images/GamePage/woodCard.png", 
+                            "Images/GamePage/sheepCard.png", "Images/GamePage/rockCard.png", "Images/GamePage/clayCard.png"};
+
+            ressourceCard = new GameObject[dealVal[0].sum()+dealVal[1].sum()];
+            int counter = 0;
+            for(int i = 0; i < 5; i++) {
+                for(int j = 0; j < dealVal[1].getRessource(i); j++) {
+                    GameObject obj = new GameObject(file[i], 75, 110);
+                    obj.transform().setPosition(-300+counter*50, 150);
+                    obj.renderer().setZindex(11+counter);
+                    ui.add(obj);
+                    ressourceCard[counter] = obj;
+                    counter++;
+                }
+            }
+            for(int i = 0; i < 5; i++) {
+                for(int j = 0; j < dealVal[0].getRessource(i); j++) {
+                    GameObject obj = new GameObject(file[i], 75, 110);
+                    obj.transform().setPosition(50+counter*50, 150);
+                    obj.renderer().setZindex(11+counter);
+                    ui.add(obj);
+                    ressourceCard[counter] = obj;
+                    counter++;
+                }
+            }
+        }
+        else if(!dealVal[dealTurn].equals(new Ressource())) {
+            dealTurn++;
+            canvas.getSignInfo().renderer().setImages("What do you want to get?");
+            showDeal();
+        }
+    }
+
+    public void closeDeal() {
+        canvas.getSign().renderer().setVisible(false);
+        canvas.getSign().collider().setActiv(false);
+
+        dealVal[0] = new Ressource();
+        dealVal[1] = new Ressource();
+        dealTurn = 0;
+
+        for(GameObject obj : ressourceCard) 
+            ui.remove(obj);
+
+        if(steal) steal();
+    }   
+
+    public void selectPlayer(int player, GameObject obj) {
+        if(game.getPlayer()[player] != dealPlayer[0] && game.getPlayer()[player].possesse(dealVal[1]) && (!steal || game.getPlayer()[player].isBlocked())) {
+            focus(obj, 20);
+            selectedPlayer = player;
+        }
+    }
+
+    public void unselectPlayer(int player, GameObject obj) {
+        if(selectedPlayer == player) {
+            unfocus(obj, 20);
+            selectedPlayer = -1;
+        }
+    }
+
+    public void confirmPlayer(int player) {
+        steal = false;
+        if(selectedPlayer == player) {
+            selectedPlayer = -1;
+            game.getPlayer()[player].pay(dealVal[1]);
+            game.getPlayer()[player].receive(dealVal[0]);
+            dealPlayer[0].pay(dealVal[0]);
+            dealPlayer[0].receive(dealVal[1]);
+
+            closeDeal();
+            updateText();
+        }
     }
 
     public void setVoleur(boolean v) { this.voleur = v; }

@@ -11,16 +11,26 @@ public class Canvas {
 
     private GameObject voleur;
 
+    private GameObject sign;
+    private GameObject[] signTexts;
+    private GameObject signInfo;
+
+    private GameObject ressourceChoice;
+    private GameObject playerChoice;
+
     public Canvas(Game g, Controller c, UI u) {
         this.game = g;
         this.controller = c;
         this.ui = u;
+
+        this.signTexts = new GameObject[5];
     }
 
     public void drawCanvas() {
         this.profils = new GameObject[game.getPlayer().length];
         this.ressourceText = new GameObject[game.getPlayer().length][];
 
+        //#region Profils
         this.profils[0] = new GameObject("Images/Profils/playerProfil1.png", 200, 200);
         this.profils[0].transform().setPosition(-825, 375);
         this.profils[0].renderer().setAlign(Renderer.Align.TOP_LEFT);
@@ -47,7 +57,9 @@ public class Canvas {
             controller.addRessourceText(3, 675, -375, Renderer.Align.BOTTOM_RIGHT);
         }
         this.profils[0].transform().scale(1.2);
+        //#endregion
 
+        //#region Buttons
         GameObject build = new GameObject("Images/GamePage/Hammer.png", 75, 75);
         build.transform().setPosition(0, -450);
         build.renderer().setZindex(2);
@@ -72,9 +84,21 @@ public class Canvas {
 
         ui.add(next);
 
+        GameObject deal = new GameObject("Images/GamePage/deal.png", 75, 75);
+        deal.transform().setPosition(-150, -450);
+        deal.renderer().setZindex(2);
+        deal.renderer().setAlign(Renderer.Align.BOTTOM);
+        deal.addComponent(new BoxCollider(deal));
+
+        deal.collider().setOnHoverEnterAction(() -> controller.focus(deal, 20));
+        deal.collider().setOnHoverExitAction(() -> controller.unfocus(deal, 20));
+        deal.collider().setOnMouseClickedAction(controller::openDeal);
+
+        ui.add(deal);
+
         GameObject pause = new GameObject("Images/GamePage/Pause.png", 75, 75);
         pause.transform().setPosition(0, 450);
-        pause.renderer().setZindex(2);
+        pause.renderer().setZindex(15);
         pause.renderer().setAlign(Renderer.Align.TOP);
         pause.addComponent(new CircleCollider(pause));
 
@@ -88,7 +112,9 @@ public class Canvas {
         });
 
         ui.add(pause);
+        //#endregion
 
+        //#region Dices
         game.getDice1().transform().setPosition(-150, 0);
         game.getDice1().renderer().setZindex(9);
         game.getDice2().transform().setPosition(150, 0);
@@ -110,6 +136,108 @@ public class Canvas {
         ui.add(game.getDice2());
         ui.add(game.getDice1Small());
         ui.add(game.getDice2Small());
+        //#endregion
+
+        //#region Sign
+        sign = new GameObject("Images/GamePage/sign.png", 1200, 1200);
+        sign.transform().setPosition(0, 150);
+        sign.addComponent(new BoxCollider(sign));
+        sign.renderer().setZindex(10);
+        ui.add(sign); 
+
+        GameObject closeButton = new GameObject("Images/Buttons/cancelButton.png", 75, 75);
+        closeButton.transform().setPosition(-300, -225);
+        closeButton.renderer().setZindex(11);
+        closeButton.addComponent(new CircleCollider(closeButton));
+        closeButton.collider().setOnHoverEnterAction(() -> controller.focus(closeButton, 20));
+        closeButton.collider().setOnHoverExitAction(() -> controller.unfocus(closeButton, 20));
+        closeButton.collider().setOnMouseClickedAction(controller::closeDeal);
+        sign.addChild(closeButton);
+        ui.add(closeButton);
+
+        //#endregion
+
+        //#region Ressource Choice
+        ressourceChoice = new GameObject(0, 0);
+        ressourceChoice.addComponent(new BoxCollider(ressourceChoice));
+        sign.addChild(ressourceChoice);
+
+        String[] files = { "Images/GamePage/wheatCard.png", "Images/GamePage/woodCard.png", "Images/GamePage/sheepCard.png",
+                            "Images/GamePage/rockCard.png", "Images/GamePage/clayCard.png"};
+
+        for(int i = 0; i < 5; i++) {
+            GameObject text = new GameObject(100, 100);
+            text.addComponent(new TextRenderer(text, "0"));
+            text.transform().setPosition(-300+i*150, 75);
+            text.renderer().setZindex(11);
+            ressourceChoice.addChild(text);
+            ui.add(text);
+            signTexts[i] = text;
+
+            GameObject obj = new GameObject(files[i], 150, 200);
+            obj.transform().setPosition(-300+i*150, -50);
+            obj.renderer().setZindex(11);
+            obj.addComponent(new BoxCollider(obj));
+            int val = i;
+            obj.collider().setOnMouseClickedAction(() -> controller.addValueToDealProp(val));
+            ressourceChoice.addChild(obj);
+            ui.add(obj);
+        }
+
+        signInfo = new GameObject(600, 100);
+        signInfo.addComponent(new TextRenderer(signInfo, "Welcome"));
+        signInfo.transform().setPosition(0, 150);
+        signInfo.renderer().setZindex(11);
+        ressourceChoice.addChild(signInfo);
+        ui.add(signInfo);
+
+        GameObject resetButton = new GameObject("Images/GamePage/nextButton.png", 75, 75);
+        resetButton.transform().setPosition(0, -225);
+        resetButton.renderer().setZindex(11);
+        resetButton.addComponent(new CircleCollider(resetButton));
+        resetButton.collider().setOnHoverEnterAction(() -> controller.focus(resetButton, 20));
+        resetButton.collider().setOnHoverExitAction(() -> controller.unfocus(resetButton, 20));
+        resetButton.collider().setOnMouseClickedAction(controller::resetDeal);
+        ressourceChoice.addChild(resetButton);
+        ui.add(resetButton);
+
+        GameObject validButton = new GameObject("Images/Buttons/validateButton.png", 75, 75);
+        validButton.transform().setPosition(300, -225);
+        validButton.renderer().setZindex(11);
+        validButton.addComponent(new CircleCollider(validButton));
+        validButton.collider().setOnHoverEnterAction(() -> controller.focus(validButton, 20));
+        validButton.collider().setOnHoverExitAction(() -> controller.unfocus(validButton, 20));
+        validButton.collider().setOnMouseClickedAction(controller::validDeal);
+        ressourceChoice.addChild(validButton);
+        ui.add(validButton);
+
+        //#endregion
+
+        //#region Player Choice
+
+        playerChoice = new GameObject(0, 0);
+        playerChoice.addComponent(new BoxCollider(playerChoice));
+        sign.addChild(playerChoice);
+
+        for(int i = 0; i < game.getPlayer().length; i++) {
+            GameObject player = new GameObject("Images/Profils/Profil"+(i+1)+".png", 100, 200);
+            player.transform().setPosition(-300+200*i, -25);
+            player.renderer().setZindex(11);
+
+            player.addComponent(new BoxCollider(player));
+            int val = i;
+            player.collider().setOnHoverEnterAction(() -> controller.selectPlayer(val, player));
+            player.collider().setOnHoverExitAction(() -> controller.unselectPlayer(val, player));
+            player.collider().setOnMouseClickedAction(() -> controller.confirmPlayer(val));
+
+            playerChoice.addChild(player);
+            ui.add(player);
+        }
+
+        //#endregion
+
+        sign.renderer().setVisible(false);
+        sign.collider().setActiv(false);
 
         GameObject costCard = new GameObject("Images/GamePage/costCard.png", 240, 310);
         costCard.transform().setPosition(750, 0);
@@ -176,4 +304,11 @@ public class Canvas {
 
     public GameObject[] getProfils() { return this.profils; }
     public GameObject[][] getRessourceText() { return this.ressourceText; }
+
+    public GameObject getSign() { return this.sign; }
+    public GameObject[] getSignTexts() { return this.signTexts; }
+    public GameObject getSignInfo() { return this.signInfo; }
+
+    public GameObject getRessourceChoice() { return this.ressourceChoice; }
+    public GameObject getPlayerChoice() { return this.playerChoice; }
 }

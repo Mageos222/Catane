@@ -185,6 +185,11 @@ public class UI extends Canvas {
 
     public void add(GameObject gameObject) {
         this.gameObjects.add(gameObject);
+        rescale = true;
+    }
+
+    public void remove(GameObject gameObject) {
+        this.gameObjects.remove(gameObject);
     }
 
     public void draw(Graphics g) {

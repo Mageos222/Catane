@@ -32,6 +32,10 @@ public class SpriteRenderer extends Renderer {
             }
         }
     }
+    
+    public SpriteRenderer(GameObject parent) {
+        super(parent);
+    }
 
     @Override
     public void setImages(String image) {

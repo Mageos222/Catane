@@ -39,6 +39,29 @@ public class Ressource {
             ressource[i] -= r.getRessource(i);
     }
 
+    public int sum() {
+        int res = 0;
+        for(int r : ressource)
+            res += r;
+        return res;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        Ressource r;
+        try {
+            r = (Ressource)o;
+        }
+        catch(ClassCastException e) {
+            System.out.println("o must be a Ressource");
+            return false;
+        }
+        for(int i = 0; i < 5; i++)
+            if(ressource[i] != r.getRessource(i))
+                return false;
+        return true;
+    }
+
     // 5 getters 
     // 1 setter (type t, int val)
 }

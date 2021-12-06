@@ -18,7 +18,6 @@ public class Game extends Thread {
     private Controller controller;
     private Canvas canvas;
 
-    private FPSCounter fps;
     private LoadingPage loading;
 
     private int nbTurn;
@@ -69,6 +68,7 @@ public class Game extends Thread {
         
         canvas.drawCanvas();
 
+        FPSCounter fps;
         fps = new FPSCounter(ui);
         fps.start();
 
