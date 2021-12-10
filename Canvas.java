@@ -162,8 +162,8 @@ public class Canvas {
         ressourceChoice.addComponent(new BoxCollider(ressourceChoice));
         sign.addChild(ressourceChoice);
 
-        String[] files = { "Images/GamePage/wheatCard.png", "Images/GamePage/woodCard.png", "Images/GamePage/sheepCard.png",
-                            "Images/GamePage/rockCard.png", "Images/GamePage/clayCard.png"};
+        String[] files = { "Images/Card/wheatCard.png", "Images/Card/woodCard.png", "Images/Card/sheepCard.png",
+                            "Images/Card/rockCard.png", "Images/Card/clayCard.png"};
 
         for(int i = 0; i < 5; i++) {
             GameObject text = new GameObject(100, 100);
@@ -239,7 +239,7 @@ public class Canvas {
         sign.renderer().setVisible(false);
         sign.collider().setActiv(false);
 
-        GameObject costCard = new GameObject("Images/GamePage/costCard.png", 240, 310);
+        GameObject costCard = new GameObject("Images/Card/costCard.png", 240, 310);
         costCard.transform().setPosition(750, 0);
         costCard.renderer().setAlign(Renderer.Align.CENTER_RIGHT);
         costCard.renderer().setZindex(9);

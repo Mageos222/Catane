@@ -71,6 +71,7 @@ public class Game extends Thread {
         FPSCounter fps;
         fps = new FPSCounter(ui);
         fps.start();
+        //fps.show();
 
         Random rnd = new Random();
 
@@ -113,7 +114,7 @@ public class Game extends Thread {
                     
                 System.out.println("Value of dice : " + dice1Value + "+" + dice2Value + " => " + (dice1Value+dice2Value));
                 if(dice1Value+dice2Value == 7) {
-                    controller.setVoleur(true);
+                    controller.setRobber(true);
                 }
             }
 
@@ -178,7 +179,7 @@ public class Game extends Thread {
 
     public static void main(String[] args) {
         MusicPlayer music = new MusicPlayer("Music/Music.wav");
-        //music.loop();
+        music.loop();
 
         RessourceManager.load("Images");
 

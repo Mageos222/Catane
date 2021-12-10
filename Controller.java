@@ -8,8 +8,8 @@ public class Controller {
     private Canvas canvas;
 
     private boolean canBuildVillage;
-    private boolean canBuildRoad;
-    private boolean voleur;
+    private int canBuildRoad;
+    private boolean robber;
 
     private boolean addObject = false;
 
@@ -33,9 +33,9 @@ public class Controller {
         this.game = g;
         this.ui = u;
 
-        canBuildRoad = true;
+        canBuildRoad = 1;
         canBuildVillage = true;
-        voleur = true;
+        robber = true;
 
         String[] towers = {"Images/Colonies/townRed.png","Images/Colonies/townBlue.png", 
             "Images/Colonies/townGreen.png", "Images/Colonies/townYellow.png"};
@@ -58,7 +58,7 @@ public class Controller {
     }
 
     public void setNewObject() {
-        if(voleur) return;
+        if(robber) return;
         addObject = true;
         ui.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
     }
@@ -66,14 +66,14 @@ public class Controller {
     public void build(GameObject object, int x1, int y1, int x2, int y2, boolean isVillage, boolean isTown) {
         if(!object.collider().isHover() || !addObject) return;
 
-        if(!isTown && (canBuildRoad || game.getPlayer()[game.getTurn()].possesse(roadCost)) && game.getMap().canBuildRoad(game.getTurn(), y1, x1, y2, x2)) {
-            if(!canBuildRoad) {
+        if(!isTown && (canBuildRoad > 0 || game.getPlayer()[game.getTurn()].possesse(roadCost)) && game.getMap().canBuildRoad(game.getTurn(), y1, x1, y2, x2)) {
+            if(canBuildRoad == 0) {
                 game.getPlayer()[game.getTurn()].pay(roadCost);
                 game.getPlayer()[game.getTurn()].increment(1);
                 updateText();
             }
             game.getMap().buildRoad(game.getTurn(), y1, x1, y2, x2);
-            canBuildRoad = false;
+            canBuildRoad--;
             System.out.println("road");
         }
         else if(isVillage && ((canBuildVillage && game.getMap().canBuildFirstVillage(game.getTurn(), x1, y1)) || 
@@ -167,7 +167,7 @@ public class Controller {
     }
 
     public void nextTurn() {
-        if(canBuildRoad || canBuildVillage || voleur) return;
+        if(canBuildRoad > 0 || canBuildVillage || robber) return;
 
         canvas.getProfils()[game.getTurn()].transform().scale(0.8);
 
@@ -175,7 +175,7 @@ public class Controller {
         game.increment();
         if(game.getNbTurn() < 2*game.getPlayer().length) {
             canBuildVillage = true;
-            canBuildRoad = true;
+            canBuildRoad = 1;
         }
 
         canvas.getProfils()[game.getTurn()].transform().scale(1.2);
@@ -205,18 +205,18 @@ public class Controller {
     }
 
     public void moveVoleur(int x, int y) {
-        if(!voleur) return;
+        if(!robber) return;
         canvas.moveVoleur(x, -y);
     }
 
     public void putVoleur(Colony[] colonies) {
-        if(!voleur) return;
+        if(!robber) return;
 
         if(game.getMap() != null) game.getMap().resetBlocked();
         for(Colony colony : colonies)
             colony.setBlocked(true);
 
-        voleur = false;
+        robber = false;
         steal();
     }
 
@@ -287,8 +287,8 @@ public class Controller {
             canvas.getRessourceChoice().collider().setActiv(false);
             canvas.getPlayerChoice().collider().setActiv(true);
 
-            String[] file = { "Images/GamePage/wheatCard.png", "Images/GamePage/woodCard.png", 
-                            "Images/GamePage/sheepCard.png", "Images/GamePage/rockCard.png", "Images/GamePage/clayCard.png"};
+            String[] file = { "Images/Card/wheatCard.png", "Images/Card/woodCard.png", 
+                            "Images/Card/sheepCard.png", "Images/Card/rockCard.png", "Images/Card/clayCard.png"};
 
             ressourceCard = new GameObject[dealVal[0].sum()+dealVal[1].sum()];
             int counter = 0;
@@ -362,6 +362,6 @@ public class Controller {
         }
     }
 
-    public void setVoleur(boolean v) { this.voleur = v; }
+    public void setRobber(boolean v) { this.robber = v; }
     public void setAddObject(boolean v) { this.addObject = v; }
 }
