@@ -3,6 +3,7 @@ import GameEngine.RessourceManager;
 
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 import java.awt.*;
 
 public class Game extends Thread {
@@ -178,12 +179,37 @@ public class Game extends Thread {
     public GameObject getDice2Small() { return this.dice2Small; }
 
     public static void main(String[] args) {
-        MusicPlayer music = new MusicPlayer("Music/Music.wav");
-        music.loop();
+        RessourceManager manager = new RessourceManager();
+        manager.load("Images/LoadingPage", false);
 
-        RessourceManager.load("Images");
+        MusicPlayer music = new MusicPlayer("Music/Music.wav");
+        //music.loop();
+
+        LoadingPage loading = new LoadingPage(0, 0, 720, 480);
+        loading.start();
+
+        manager.load("Images");
+
+        waitManager();
+
+        loading.close();
+        loading.interrupt();
 
         Home home = new Home(new Game(3));
         home.start();
+    }
+
+    private static void waitManager() {
+        while(true) {
+            if(!RessourceManager.isLoading())
+                return;
+            //else System.out.println("Waiting");
+            try {
+                TimeUnit.MILLISECONDS.sleep(50);
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
     }
 }

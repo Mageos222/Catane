@@ -74,7 +74,7 @@ public class Controller {
             }
             game.getMap().buildRoad(game.getTurn(), y1, x1, y2, x2);
             canBuildRoad--;
-            System.out.println("road");
+            //System.out.println("road");
         }
         else if(isVillage && ((canBuildVillage && game.getMap().canBuildFirstVillage(game.getTurn(), x1, y1)) || 
                             (game.getPlayer()[game.getTurn()].possesse(villageCost) && game.getMap().canBuildVillage(game.getTurn(), x1, y1)))) {

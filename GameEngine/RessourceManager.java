@@ -9,14 +9,21 @@ import java.util.Hashtable;
 
 import javax.imageio.ImageIO;
 
-public class RessourceManager {
+public class RessourceManager extends Thread {
     
     private static Dictionary<String, BufferedImage> images;
 
-    private RessourceManager() { }
+    private File rootDir;
+    private String rootPath;
 
-    public static void load(String path) {
-        images = new Hashtable<>();
+    private static boolean isLoading;
+
+    public void load(String path) {
+        load(path, true);
+    }
+
+    public void load(String path, boolean async) {
+        resetImages();
         File root = new File(path);
         
         if(!root.isDirectory()) {
@@ -24,8 +31,21 @@ public class RessourceManager {
             return;
         }
 
-        loadImages(root, path);
-        
+        this.rootDir = root;
+        this.rootPath = path;
+
+        if(async) {
+            setLoading(true);
+            start();
+        }
+        else loadImages(root, path);
+    }
+
+    @Override
+    public void run() {
+        loadImages(rootDir, rootPath);
+        setLoading(false);
+        interrupt();
     }
 
     private static void loadImages(File dir, String fullPath) {
@@ -52,4 +72,8 @@ public class RessourceManager {
 
         return res;
     }
+
+    private static void resetImages() { images = new Hashtable<>(); }
+    private static void setLoading(boolean v) { isLoading = v; }
+    public static boolean isLoading() { return isLoading; }
 }

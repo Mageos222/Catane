@@ -183,6 +183,8 @@ public class Home extends Thread {
         MusicPlayer button = new MusicPlayer("Music/button.wav");
         button.play();
 
+        removePlayer();
+
         this.newButton.renderer().setVisible(!state);
         this.newButton.collider().setActiv(!state);
         this.continueButton.renderer().setVisible(!state);

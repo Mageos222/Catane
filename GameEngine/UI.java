@@ -34,7 +34,6 @@ public class UI extends Canvas {
     private transient BufferedImage backgroundImg;
 
     private int nbFrame = 0;
-    private int clikFrameTime = 0;
 
     public UI () {
         this.RATIO = (double)WIDTH/HEIGHT;
@@ -47,7 +46,7 @@ public class UI extends Canvas {
 
         f = new Frame("Catane");   
         f.add(this);    
-    
+     
         f.setLayout(null);    
         f.setSize(WIDTH, HEIGHT);    
         f.setVisible(true); 
@@ -72,29 +71,31 @@ public class UI extends Canvas {
         
         addMouseListener(new MouseListener() {
             public void mouseClicked(MouseEvent e) {  
-                if(e.getButton() == 1 && clikFrameTime < nbFrame) {
-                    clikFrameTime = nbFrame + 3;
-                    mouseClicked = true;
-                    if(!events.contains(Event.MOUSE_LEFT_CLICK))
-                        events.add(Event.MOUSE_LEFT_CLICK);
-                }
-                else if(e.getButton() == 3 && !events.contains(Event.MOUSE_RIGHT_CLICK)) 
-                    events.add(Event.MOUSE_RIGHT_CLICK);
+                // pass
             }  
             public void mouseEntered(MouseEvent e) { /* not used */ }  
             public void mouseExited(MouseEvent e) { /* not used */ }  
             public void mousePressed(MouseEvent e) { 
-                if(e.getButton() == 1 && clikFrameTime < nbFrame) {
-                    clikFrameTime = nbFrame + 3;
+                if(e.getButton() == 1) {
                     mouseClicked = true;
-                    if(!events.contains(Event.MOUSE_LEFT_CLICK))
-                        events.add(Event.MOUSE_LEFT_CLICK);
+                    events.add(Event.MOUSE_LEFT_CLICK);
                 }
-                else if(e.getButton() == 3 && !events.contains(Event.MOUSE_RIGHT_CLICK))
+                else if(e.getButton() == 3) 
                     events.add(Event.MOUSE_RIGHT_CLICK);
             }  
             public void mouseReleased(MouseEvent e) { /* not used */ } 
         });  
+
+        f.addWindowFocusListener(new WindowFocusListener() {
+            @Override
+            public void windowLostFocus(WindowEvent e) {
+                f.requestFocus();
+            }
+            @Override
+            public void windowGainedFocus(WindowEvent e) {
+                // pass
+            }
+        });
     }
     
     public void setBackground(String file) {
@@ -109,7 +110,6 @@ public class UI extends Canvas {
         if(rescale) rescale();
         checkCollision();
 
-        mouseClicked = false;
         nbFrame++;
 
         draw(getGraphics());
@@ -149,8 +149,10 @@ public class UI extends Canvas {
                 res.onHoverEnter();
                 res.setHover(true);
             }
-            if(mouseClicked) res.onMouseClicked();
+            if(mouseClicked)  res.onMouseClicked();
         } 
+
+        mouseClicked = false;
     }
 
     public void rescale() {
@@ -213,9 +215,9 @@ public class UI extends Canvas {
                 }
                 if(renderQueu.get(i).renderer().getZindex() == index) {
                     display.drawImage(gameObject.renderer().getImage(), gameObject.transform().getRelativCenterPosition().getX(), 
-                                                             gameObject.transform().getRelativCenterPosition().getY(), 
-                                                             gameObject.transform().getRelativSize().getX(), 
-                                                             gameObject.transform().getRelativSize().getY(),this);
+                                                                        gameObject.transform().getRelativCenterPosition().getY(), 
+                                                                        gameObject.transform().getRelativSize().getX(), 
+                                                                        gameObject.transform().getRelativSize().getY(),this);
 
                     renderQueu.remove(i);
                 }
