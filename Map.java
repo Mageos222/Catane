@@ -145,10 +145,10 @@ public class Map {
         };
 
         int state = 0;
-        int[] type = new int[(3*size*(size-1))+1];
+        int[] type = new int[2+4*(size-1)]; //nombre de bateau (a test avec grande map)
 
         for (int i=0; i<type.length; i++){
-            if (type.length-i <5){
+            if (type.length-i <=type.length%5){
                 type[i] = 5;
             } else {
                 type[i] = i%5;
