@@ -145,7 +145,16 @@ public class Map {
         };
 
         int state = 0;
-        int type = 0;
+        int[] type = new int[(3*size*(size-1))+1];
+
+        for (int i=0; i<type.length; i++){
+            if (type.length-i <5){
+                type[i] = 5;
+            } else {
+                type[i] = i%5;
+            }
+        }
+        int index = 0;
 
         for(int j = 0; j < 6; j++) {
             for(int i = 0; i < size; i++) {
@@ -153,100 +162,24 @@ public class Map {
                     state = (state-2)%3;
                     continue;
                 }
-                canvas.addPort(op[j].x(i, size)*xMult, op[j].y(i, size)*yMult, size, op[j].v(state), type%6);
+                canvas.addPort(op[j].x(i, size)*xMult, op[j].y(i, size)*yMult, size, op[j].v(state), type[index]);
 
                 if(j==0) {
-                    map[0][i].addPort(type);
-                    map[0][i+1].addPort(type);
+                    map[0][i].addPort(type[index]);
+                    map[0][i+1].addPort(type[index]);
                 }
                 else if(j==3) {
-                    map[2*size-1][size-i].addPort(type);
-                    map[2*size-1][size-i-1].addPort(type);
+                    map[2*size-1][size-i].addPort(type[index]);
+                    map[2*size-1][size-i-1].addPort(type[index]);
                 }
 
                 state++;
-                type++;
+                index++;
             }
 
             state++;
         }
 
-        /*int space = 1;
-        int start = 1;
-
-        // Top
-        for(int i = 0; i < size+1; i++) {
-            canvas.addPort((2*i-size)*xMult, size*yMult, size, space==0?0:1);
-            if(space == 1) {
-                i++;
-                start = 0;
-            } 
-            else if(i == size - 1) {
-                start = 0;
-                space = 1;
-                break;
-            }
-            else start = 1;
-            space = (space+1)%2;
-        }
-
-        // Top Right
-        for(int i = start; i < size - 1; i++) {
-            canvas.addPort((size+1+i)*xMult, (size-i-1)*yMult, size, space==0?0:2);
-            if(space == 0) {
-                i++;
-                start = 1;
-            }
-            else start = space;
-            space = (space+1)%2;
-        }
-
-        // Center
-        if(start == 0) {
-            canvas.addPort(2*size*xMult, 0, size, 2);
-            space = 0;
-            start = 1;
-        }
-        else start = 0;
-
-        // Bottom Right
-        for(int i = start; i < size-1; i++) {
-            canvas.addPort((2*size-1-i)*xMult, -(i+1)*yMult, size, space==0?4:2);
-            if(space == 1) i++;
-            space = (space+1)%2;
-        }
-
-        // Bottom
-        for(int i = space; i < size+1; i++) {
-            canvas.addPort(-(2*i-size)*xMult, -size*yMult, size, space==0?4:5);
-            if(space == 0) i++;
-            else if(i == size - 1) break;
-            space = (space+1)%2;
-        }
-
-        // Bottom Left
-        for(int i = (space+1)%2; i < size-1; i++) {
-            canvas.addPort(-(size+i+1)*xMult, (i-size+1)*yMult, size, space==0?3:5);
-            if(space == 1) i++;
-            else if(i == size - 1) break;
-            space = (space+1)%2;
-        }
-
-        // Center
-        if(space == 0) {
-            canvas.addPort(-2*size*xMult, 0, size, 3);
-            space = 1;
-            start = 1;
-        }
-        else start = 0;
-
-        // Top Left
-        for(int i = start; i < size - 1; i++) {
-            canvas.addPort(-(2*size-1-i)*xMult, (i+1)*yMult, size, space==0?3:1);
-            if(space == 0) i++;
-            else if(i == size - 1) break;
-            space = (space+1)%2;
-        }*/
     }
 
     public Colony getColony(int x, int y) { return map[y][x]; }
