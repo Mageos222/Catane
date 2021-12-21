@@ -38,11 +38,11 @@ public abstract class Renderer implements Component {
     }
 
     public void mix(Image img) {
-        BufferedImage res = new BufferedImage(parent.transform().getSize().getX(), parent.transform().getSize().getY(), BufferedImage.TYPE_INT_ARGB);
+        BufferedImage res = new BufferedImage(images[0].getWidth(), images[0].getHeight(), BufferedImage.TYPE_INT_ARGB);
         Graphics2D dis = res.createGraphics();
 
-        dis.drawImage(images[0].getScaledInstance(parent.transform().getSize().getX(), parent.transform().getSize().getY(), Image.SCALE_SMOOTH), 0, 0, null);
-        dis.drawImage(img, (int)(parent.transform().getSize().getX()/2f-img.getWidth(null)/2f), (int)(parent.transform().getSize().getY()/2f-img.getHeight(null)/2f), null);
+        dis.drawImage(images[0], 0, 0, null);
+        dis.drawImage(img, images[0].getWidth()/3, images[0].getHeight()/3, images[0].getWidth()/3, images[0].getHeight()/3, null);
         dis.dispose();
 
         images[0] = res;

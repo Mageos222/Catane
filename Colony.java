@@ -9,6 +9,7 @@ public class Colony {
     private int level;
 
     private boolean isBlocked;
+    private int port = -1;
 
     public Colony() {
         this.tiles = new Tiles[0];
@@ -29,6 +30,9 @@ public class Colony {
         n[tiles.length] = tile;
         tiles = n;
     }
+
+    public void addPort(int p) { this.port = p; }
+    public int getPort() { return this.port; }
 
     public int getVillage(){
         return this.village;

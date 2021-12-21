@@ -1,5 +1,6 @@
 import GameEngine.Vector2;
 
+import java.rmi.server.Operation;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -23,7 +24,7 @@ public class Map {
             "Images/GamePage/Desert.png"
         };
 
-        int tileSize = 175;
+        int tileSize = 520/size;
         int xOffset = (int)(0.5f*tileSize);
         int yOffset = (int)(0.74f*tileSize);
 
@@ -40,14 +41,14 @@ public class Map {
             for(int x = 0; x < 2*(size+i)+1; x++) {
                 map[y][x] = new Colony();
 
-                canvas.addEmptyVillage((x-size-i)*xOffset, (int)((y-size+0.5f)*yOffset+yShift), x, y);
+                canvas.addEmptyVillage((x-size-i)*xOffset, (int)((y-size+0.5f)*yOffset+yShift), x, y, size);
                 yShift = -yShift;
 
                 int nextX = x+(x%2==1?-1:y==size||y==size-1?0:1);
                 int nextY = y+(x%2==0&&y>=size||x%2==1&&y<size&&y>0||y>=map.length-1?-1:1);
 
-                if(x != 2*(size+i)) canvas.addEmptyRoad((x-size-i)*xOffset+xOffset/2, (int)((y-size+0.5f)*yOffset), x, y, x+1, y, roadType);
-                if(roadType == 1 && y != 2*size-1) canvas.addEmptyRoad((x-size-i)*xOffset, (int)((y-size+0.5f)*yOffset)+yOffset/2, x, y, nextX, nextY, 2);
+                if(x != 2*(size+i)) canvas.addEmptyRoad((x-size-i)*xOffset+xOffset/2, (int)((y-size+0.5f)*yOffset), x, y, x+1, y, roadType, size);
+                if(roadType == 1 && y != 2*size-1) canvas.addEmptyRoad((x-size-i)*xOffset, (int)((y-size+0.5f)*yOffset)+yOffset/2, x, y, nextX, nextY, 2, size);
                 
                 roadType = (roadType+1)%2;
             }
@@ -128,6 +129,124 @@ public class Map {
                 }
             }
         }
+
+        placePort(canvas, xOffset, yOffset);
+    }
+
+    private void placePort(Canvas canvas, int xMult, int yMult) {
+
+        PortOperation[] op = {
+            new PortOperation() { public int x(int i, int size){return 2*i-size+2;} public int y(int i, int size){return size;} public int v(int state){return state==0?0:1;}},
+            new PortOperation() { public int x(int i, int size){return size+1+i;} public int y(int i, int size){return size-i-1;} public int v(int state){return state==0?2:0;}},
+            new PortOperation() { public int x(int i, int size){return 2*size-1-i;} public int y(int i, int size){return -(i+1);} public int v(int state){return state==0?4:2;}},
+            new PortOperation() { public int x(int i, int size){return -(2*i-size+2);} public int y(int i, int size){return -size;} public int v(int state){return state==0?5:4;}},
+            new PortOperation() { public int x(int i, int size){return -(size+i+1);} public int y(int i, int size){return i-size+1;} public int v(int state){return state==0?3:5;}},
+            new PortOperation() { public int x(int i, int size){return -(2*size-1-i);} public int y(int i, int size){return i+1;} public int v(int state){return state==0?1:3;}}
+        };
+
+        int state = 0;
+        int type = 0;
+
+        for(int j = 0; j < 6; j++) {
+            for(int i = 0; i < size; i++) {
+                if(state == 2 || state == 1 && i == size - 1) {
+                    state = (state-2)%3;
+                    continue;
+                }
+                canvas.addPort(op[j].x(i, size)*xMult, op[j].y(i, size)*yMult, size, op[j].v(state), type%6);
+
+                if(j==0) {
+                    map[0][i].addPort(type);
+                    map[0][i+1].addPort(type);
+                }
+                else if(j==3) {
+                    map[2*size-1][size-i].addPort(type);
+                    map[2*size-1][size-i-1].addPort(type);
+                }
+
+                state++;
+                type++;
+            }
+
+            state++;
+        }
+
+        /*int space = 1;
+        int start = 1;
+
+        // Top
+        for(int i = 0; i < size+1; i++) {
+            canvas.addPort((2*i-size)*xMult, size*yMult, size, space==0?0:1);
+            if(space == 1) {
+                i++;
+                start = 0;
+            } 
+            else if(i == size - 1) {
+                start = 0;
+                space = 1;
+                break;
+            }
+            else start = 1;
+            space = (space+1)%2;
+        }
+
+        // Top Right
+        for(int i = start; i < size - 1; i++) {
+            canvas.addPort((size+1+i)*xMult, (size-i-1)*yMult, size, space==0?0:2);
+            if(space == 0) {
+                i++;
+                start = 1;
+            }
+            else start = space;
+            space = (space+1)%2;
+        }
+
+        // Center
+        if(start == 0) {
+            canvas.addPort(2*size*xMult, 0, size, 2);
+            space = 0;
+            start = 1;
+        }
+        else start = 0;
+
+        // Bottom Right
+        for(int i = start; i < size-1; i++) {
+            canvas.addPort((2*size-1-i)*xMult, -(i+1)*yMult, size, space==0?4:2);
+            if(space == 1) i++;
+            space = (space+1)%2;
+        }
+
+        // Bottom
+        for(int i = space; i < size+1; i++) {
+            canvas.addPort(-(2*i-size)*xMult, -size*yMult, size, space==0?4:5);
+            if(space == 0) i++;
+            else if(i == size - 1) break;
+            space = (space+1)%2;
+        }
+
+        // Bottom Left
+        for(int i = (space+1)%2; i < size-1; i++) {
+            canvas.addPort(-(size+i+1)*xMult, (i-size+1)*yMult, size, space==0?3:5);
+            if(space == 1) i++;
+            else if(i == size - 1) break;
+            space = (space+1)%2;
+        }
+
+        // Center
+        if(space == 0) {
+            canvas.addPort(-2*size*xMult, 0, size, 3);
+            space = 1;
+            start = 1;
+        }
+        else start = 0;
+
+        // Top Left
+        for(int i = start; i < size - 1; i++) {
+            canvas.addPort(-(2*size-1-i)*xMult, (i+1)*yMult, size, space==0?3:1);
+            if(space == 0) i++;
+            else if(i == size - 1) break;
+            space = (space+1)%2;
+        }*/
     }
 
     public Colony getColony(int x, int y) { return map[y][x]; }
@@ -205,5 +324,15 @@ public class Map {
         for(Colony[] colonies : map)  
             for(Colony colony : colonies)
                 colony.setBlocked(false);
+    }
+
+    public interface PortOperation {
+        public int x(int i, int size);
+        public int y(int i, int size);
+        public int v(int state);
+
+        static int s(int state, int x, int y) {
+            return state==0?x:y;
+        }
     }
 }

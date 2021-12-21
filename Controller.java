@@ -1,6 +1,7 @@
 import GameEngine.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.Random;
 
 public class Controller {
     private Game game;
@@ -24,7 +25,6 @@ public class Controller {
 
     private GameObject tower;
 
-    private GameObject[] ressourceCard;
     private int selectedPlayer = -1;
 
     private boolean steal;
@@ -46,7 +46,6 @@ public class Controller {
         dealVal[1] = new Ressource();
 
         this.dealPlayer = new Player[2];
-        this.ressourceCard = new GameObject[0];
     }
 
     public void setCanvas(Canvas c) { this.canvas = c; }
@@ -167,7 +166,7 @@ public class Controller {
     }
 
     public void nextTurn() {
-        if(canBuildRoad > 0 || canBuildVillage || robber) return;
+        if(canBuildRoad > 0 || canBuildVillage || robber || game.isPlayingAnim()) return;
 
         canvas.getProfils()[game.getTurn()].transform().scale(0.8);
 
@@ -246,30 +245,36 @@ public class Controller {
 
     public void steal() {
 
-        boolean exist = false;
+        int count = 0;
         for(int i = 0; i < game.getPlayer().length; i++) 
-            if(i != game.getTurn() && game.getPlayer()[i].isBlocked()) {
-                exist = true;
-                break;
+            if(i != game.getTurn() && game.getPlayer()[i].isBlocked() && game.getPlayer()[i].getRessources().sum() >= 0) 
+                count++;
+
+        if(count == 0) return;
+
+        int[] list = new int[count];
+        int counter = 0;
+        for(int i = 0; i < game.getPlayer().length; i++) 
+            if(i != game.getTurn() && game.getPlayer()[i].isBlocked() && game.getPlayer()[i].getRessources().sum() >= 0) {
+                list[counter] = i;
+                counter++;
             }
-        if(!exist) return;
-
-        showDeal();
-
-        maxDeal = 1;
-        dealTurn = 1;
-        dealPlayer[0] = game.getPlayer()[game.getTurn()];
-        dealPlayer[1] = null;
 
         steal = true;
+        dealPlayer[0] = game.getPlayer()[game.getTurn()];
+
+        canvas.getSign().renderer().setVisible(true);
+        canvas.getSign().collider().setActiv(true);
+        canvas.getRessourceChoice().renderer().setVisible(false);
+        canvas.getRessourceChoice().collider().setActiv(false);
+
+        canvas.showPlayersChoice(list);
     }
 
     private void showDeal() {
         if(canvas.getSign() == null) return;
         canvas.getSign().renderer().setVisible(true);
-        canvas.getPlayerChoice().renderer().setVisible(false);
         canvas.getSign().collider().setActiv(true);
-        canvas.getPlayerChoice().collider().setActiv(false);
 
         for(GameObject obj : canvas.getSignTexts())
             obj.renderer().setImages("0");
@@ -283,35 +288,24 @@ public class Controller {
     public void validDeal() {
         if(dealTurn == 1 && !dealVal[dealTurn].equals(new Ressource())) {
             canvas.getRessourceChoice().renderer().setVisible(false);
-            canvas.getPlayerChoice().renderer().setVisible(true);
             canvas.getRessourceChoice().collider().setActiv(false);
-            canvas.getPlayerChoice().collider().setActiv(true);
 
-            String[] file = { "Images/Card/wheatCard.png", "Images/Card/woodCard.png", 
-                            "Images/Card/sheepCard.png", "Images/Card/rockCard.png", "Images/Card/clayCard.png"};
+            canvas.showCard(dealVal);
 
-            ressourceCard = new GameObject[dealVal[0].sum()+dealVal[1].sum()];
-            int counter = 0;
-            for(int i = 0; i < 5; i++) {
-                for(int j = 0; j < dealVal[1].getRessource(i); j++) {
-                    GameObject obj = new GameObject(file[i], 75, 110);
-                    obj.transform().setPosition(-300+counter*50, 150);
-                    obj.renderer().setZindex(11+counter);
-                    ui.add(obj);
-                    ressourceCard[counter] = obj;
-                    counter++;
+            int count = 0;
+            for(int i = 0; i < game.getPlayer().length; i++) 
+                if(i != game.getTurn() && game.getPlayer()[i].possesse(dealVal[1]))
+                    count++;
+
+            int[] players = new int[count];
+            int index = 0;
+            for(int i = 0; i < game.getPlayer().length; i++) 
+                if(i != game.getTurn() && game.getPlayer()[i].possesse(dealVal[1])) {
+                    players[index] = i;
+                    index++;
                 }
-            }
-            for(int i = 0; i < 5; i++) {
-                for(int j = 0; j < dealVal[0].getRessource(i); j++) {
-                    GameObject obj = new GameObject(file[i], 75, 110);
-                    obj.transform().setPosition(50+counter*50, 150);
-                    obj.renderer().setZindex(11+counter);
-                    ui.add(obj);
-                    ressourceCard[counter] = obj;
-                    counter++;
-                }
-            }
+
+            canvas.showPlayersChoice(players);
         }
         else if(!dealVal[dealTurn].equals(new Ressource())) {
             dealTurn++;
@@ -321,6 +315,8 @@ public class Controller {
     }
 
     public void closeDeal() {
+        if(steal) return; 
+
         canvas.getSign().renderer().setVisible(false);
         canvas.getSign().collider().setActiv(false);
 
@@ -328,17 +324,12 @@ public class Controller {
         dealVal[1] = new Ressource();
         dealTurn = 0;
 
-        for(GameObject obj : ressourceCard) 
-            ui.remove(obj);
-
-        if(steal) steal();
+        canvas.emptyTemp();
     }   
 
     public void selectPlayer(int player, GameObject obj) {
-        if(game.getPlayer()[player] != dealPlayer[0] && game.getPlayer()[player].possesse(dealVal[1]) && (!steal || game.getPlayer()[player].isBlocked())) {
-            focus(obj, 20);
-            selectedPlayer = player;
-        }
+        focus(obj, 20);
+        selectedPlayer = player;
     }
 
     public void unselectPlayer(int player, GameObject obj) {
@@ -349,13 +340,24 @@ public class Controller {
     }
 
     public void confirmPlayer(int player) {
-        steal = false;
         if(selectedPlayer == player) {
             selectedPlayer = -1;
-            game.getPlayer()[player].pay(dealVal[1]);
-            game.getPlayer()[player].receive(dealVal[0]);
-            dealPlayer[0].pay(dealVal[0]);
-            dealPlayer[0].receive(dealVal[1]);
+            if(!steal) {
+                game.getPlayer()[player].pay(dealVal[1]);
+                game.getPlayer()[player].receive(dealVal[0]);
+                dealPlayer[0].pay(dealVal[0]);
+                dealPlayer[0].receive(dealVal[1]);
+            }
+            else {
+                Random rnd = new Random();
+                Ressource ressource = new Ressource(rnd.nextInt(5), 1);
+                while(!game.getPlayer()[player].possesse(ressource)) 
+                    ressource = new Ressource(rnd.nextInt(5), 1);
+
+                game.getPlayer()[player].pay(ressource);
+                dealPlayer[0].receive(ressource);
+            }
+            steal = false;
 
             closeDeal();
             updateText();

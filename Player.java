@@ -32,6 +32,8 @@ public class Player {
     public int getRessource(int i) { 
         return ressources.getRessource(i); 
     }
+    public Ressource getRessources() { return ressources; }
+
     public boolean possesse(Ressource r) { return ressources.contain(r); }
     public void pay(Ressource r) { ressources.remove(r); }
     public void receive(Ressource r) { ressources.add(r); }

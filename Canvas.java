@@ -1,3 +1,6 @@
+import java.util.LinkedList;
+import java.util.List;
+
 import GameEngine.*;
 
 public class Canvas {
@@ -18,12 +21,15 @@ public class Canvas {
     private GameObject ressourceChoice;
     private GameObject playerChoice;
 
+    private List<GameObject> temp;
+
     public Canvas(Game g, Controller c, UI u) {
         this.game = g;
         this.controller = c;
         this.ui = u;
 
         this.signTexts = new GameObject[5];
+        this.temp = new LinkedList<>();
     }
 
     public void drawCanvas() {
@@ -213,29 +219,6 @@ public class Canvas {
 
         //#endregion
 
-        //#region Player Choice
-
-        playerChoice = new GameObject(0, 0);
-        playerChoice.addComponent(new BoxCollider(playerChoice));
-        sign.addChild(playerChoice);
-
-        for(int i = 0; i < game.getPlayer().length; i++) {
-            GameObject player = new GameObject("Images/Profils/Profil"+(i+1)+".png", 100, 200);
-            player.transform().setPosition(-300+200*i, -25);
-            player.renderer().setZindex(11);
-
-            player.addComponent(new BoxCollider(player));
-            int val = i;
-            player.collider().setOnHoverEnterAction(() -> controller.selectPlayer(val, player));
-            player.collider().setOnHoverExitAction(() -> controller.unselectPlayer(val, player));
-            player.collider().setOnMouseClickedAction(() -> controller.confirmPlayer(val));
-
-            playerChoice.addChild(player);
-            ui.add(player);
-        }
-
-        //#endregion
-
         sign.renderer().setVisible(false);
         sign.collider().setActiv(false);
 
@@ -252,10 +235,10 @@ public class Canvas {
         ui.setBackground("Images/GamePage/Water.png");
     }
 
-    public void addEmptyVillage(int posX, int posY, int x, int y) {
+    public void addEmptyVillage(int posX, int posY, int x, int y, int size) {
         String[] houses = {"Images/Colonies/villageRed.png", "Images/Colonies/villageBlue.png", 
             "Images/Colonies/villageGreen.png", "Images/Colonies/villageYellow.png"};
-        GameObject empty = new GameObject(houses, 70, 70);
+        GameObject empty = new GameObject(houses, 220/size, 220/size);
         empty.transform().setPosition(posX, posY);
         empty.renderer().setZindex(4);
         empty.renderer().setVisible(false);
@@ -267,7 +250,7 @@ public class Canvas {
         ui.add(empty);
     }
 
-    public void addEmptyRoad(int posX, int posY, int x1, int y1, int x2, int y2, int i) {
+    public void addEmptyRoad(int posX, int posY, int x1, int y1, int x2, int y2, int i, int size) {
         String[][] imgFiles = { {"Images/Colonies/RoadRightRed.png", "Images/Colonies/RoadRightBlue.png", 
             "Images/Colonies/RoadRightGreen.png", "Images/Colonies/RoadRightYellow.png"}, 
         {"Images/Colonies/RoadLeftRed.png", "Images/Colonies/RoadLeftBlue.png", 
@@ -275,7 +258,7 @@ public class Canvas {
         {"Images/Colonies/RoadRed.png", "Images/Colonies/RoadBlue.png", 
             "Images/Colonies/RoadGreen.png", "Images/Colonies/RoadYellow.png" }};
 
-        GameObject emptyRoad = new GameObject(imgFiles[i], 90, 90);
+        GameObject emptyRoad = new GameObject(imgFiles[i], 280/size, 280/size);
         emptyRoad.transform().setPosition(posX, posY);
         emptyRoad.renderer().setVisible(false);
         emptyRoad.renderer().setZindex(3);
@@ -286,6 +269,30 @@ public class Canvas {
         emptyRoad.collider().setOnHoverExitAction(() -> controller.unsnap(emptyRoad));
         emptyRoad.collider().setOnMouseClickedAction(() -> controller.build(emptyRoad, x1, y1, x2, y2, false, false));
         ui.add(emptyRoad);
+    }
+
+    public void addPort(int x, int y, int size, int orientation, int type) {
+        String[]  boats = { "Images/GamePage/boatSheep.png", "Images/GamePage/boatWheat.png", "Images/GamePage/boatWood.png",
+                            "Images/GamePage/boatRock.png", "Images/GamePage/boatClay.png", "Images/GamePage/boatNeutral.png"};
+
+        GameObject port = new GameObject(boats[type], 240/size, 240/size);
+        port.transform().setPosition(x, y);
+        port.renderer().setZindex(8);
+
+        port.addComponent(new CircleCollider(port));
+        port.collider().setOnHoverEnterAction(() -> controller.focus(port, 50));
+        port.collider().setOnHoverExitAction(() -> controller.unfocus(port, 50));
+
+        ui.add(port);
+
+        String[] files = { "Images/GamePage/bridgeBL.png", "Images/GamePage/bridgeBR.png", "Images/GamePage/bridgeL.png", 
+                        "Images/GamePage/bridgeR.png", "Images/GamePage/bridgeTL.png", "Images/GamePage/bridgeTR.png"};
+
+        GameObject bridge = new GameObject(files[orientation], 540/size, 540/size);
+        bridge.transform().setPosition(x, y);
+        bridge.renderer().setZindex(8);
+
+        ui.add(bridge);
     }
 
     public void moveVoleur(int x, int y) {
@@ -300,6 +307,57 @@ public class Canvas {
             ui.add(voleur);
         }
         voleur.transform().setPosition(x, y);
+    }
+
+    public void showPlayersChoice(int[] players) {
+        for(int i = 0; i < players.length; i++) {
+            GameObject player = new GameObject("Images/Profils/Profil"+(players[i]+1)+".png", 100, 200);
+            player.transform().setPosition(-100*(players.length-1)+i*200, -25);
+            player.renderer().setZindex(11);
+
+            player.addComponent(new BoxCollider(player));
+            int val = i;
+            player.collider().setOnHoverEnterAction(() -> controller.selectPlayer(val, player));
+            player.collider().setOnHoverExitAction(() -> controller.unselectPlayer(val, player));
+            player.collider().setOnMouseClickedAction(() -> controller.confirmPlayer(val));
+
+            ui.add(player);
+
+            temp.add(player);
+        }
+    }
+
+    public void showCard(Ressource[] dealVal) {
+        String[] file = { "Images/Card/wheatCard.png", "Images/Card/woodCard.png", 
+                            "Images/Card/sheepCard.png", "Images/Card/rockCard.png", "Images/Card/clayCard.png"};
+
+        int counter = 0;
+        for(int i = 0; i < 5; i++) {
+            for(int j = 0; j < dealVal[1].getRessource(i); j++) {
+                GameObject obj = new GameObject(file[i], 75, 110);
+                obj.transform().setPosition(-300+counter*50, 150);
+                obj.renderer().setZindex(11+counter);
+                ui.add(obj);
+                temp.add(obj);
+                counter++;
+            }
+        }
+        for(int i = 0; i < 5; i++) {
+            for(int j = 0; j < dealVal[0].getRessource(i); j++) {
+                GameObject obj = new GameObject(file[i], 75, 110);
+                obj.transform().setPosition(50+counter*50, 150);
+                obj.renderer().setZindex(11+counter);
+                ui.add(obj);
+                temp.add(obj);          
+                counter++;
+            }
+        }
+    }
+
+    public void emptyTemp() {
+        for(GameObject gameObject : temp)
+            ui.remove(gameObject);
+        temp.clear();
     }
 
     public GameObject[] getProfils() { return this.profils; }

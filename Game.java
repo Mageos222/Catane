@@ -178,6 +178,8 @@ public class Game extends Thread {
     public GameObject getDice1Small() { return this.dice1Small; }
     public GameObject getDice2Small() { return this.dice2Small; }
 
+    public boolean isPlayingAnim() { return diceAnim > 0; }
+
     public static void main(String[] args) {
         RessourceManager manager = new RessourceManager();
         manager.load("Images/LoadingPage", false);
@@ -203,11 +205,9 @@ public class Game extends Thread {
         while(true) {
             if(!RessourceManager.isLoading())
                 return;
-            //else System.out.println("Waiting");
             try {
                 TimeUnit.MILLISECONDS.sleep(50);
             } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         }
