@@ -272,8 +272,8 @@ public class Canvas {
     }
 
     public void addPort(int x, int y, int size, int orientation, int type) {
-        String[]  boats = { "Images/GamePage/boatSheep.png", "Images/GamePage/boatWheat.png", "Images/GamePage/boatWood.png",
-                            "Images/GamePage/boatRock.png", "Images/GamePage/boatClay.png", "Images/GamePage/boatNeutral.png"};
+        String[] boats = { "Images/GamePage/boatWood.png", "Images/GamePage/boatWheat.png", "Images/GamePage/boatClay.png",
+                        "Images/GamePage/boatRock.png", "Images/GamePage/boatSheep.png", "Images/GamePage/boatNeutral.png"};
 
         GameObject port = new GameObject(boats[type], 240/size, 240/size);
         port.transform().setPosition(x, y);
@@ -290,7 +290,7 @@ public class Canvas {
 
         GameObject bridge = new GameObject(files[orientation], 540/size, 540/size);
         bridge.transform().setPosition(x, y);
-        bridge.renderer().setZindex(8);
+        bridge.renderer().setZindex(1);
 
         ui.add(bridge);
     }
@@ -310,13 +310,20 @@ public class Canvas {
     }
 
     public void showPlayersChoice(int[] players) {
+        String[] files = { "Images/GamePage/boatWheat.png", "Images/GamePage/boatWood.png", "Images/GamePage/boatSheep.png",
+                        "Images/GamePage/boatRock.png", "Images/GamePage/boatClay.png", "Images/GamePage/boatNeutral.png"};
+
         for(int i = 0; i < players.length; i++) {
-            GameObject player = new GameObject("Images/Profils/Profil"+(players[i]+1)+".png", 100, 200);
+            GameObject player;
+            if(players[i] <= 3) player = new GameObject("Images/Profils/Profil"+(players[i]+1)+".png", 100, 200);
+            else player  = new GameObject(files[players[i]-4], 200, 200);
+            System.out.println(players[i]);
+
             player.transform().setPosition(-100*(players.length-1)+i*200, -25);
             player.renderer().setZindex(11);
 
             player.addComponent(new BoxCollider(player));
-            int val = i;
+            int val = players[i];
             player.collider().setOnHoverEnterAction(() -> controller.selectPlayer(val, player));
             player.collider().setOnHoverExitAction(() -> controller.unselectPlayer(val, player));
             player.collider().setOnMouseClickedAction(() -> controller.confirmPlayer(val));

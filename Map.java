@@ -164,14 +164,33 @@ public class Map {
                 }
                 canvas.addPort(op[j].x(i, size)*xMult, op[j].y(i, size)*yMult, size, op[j].v(state), type[index]);
 
-                if(j==0) {
-                    map[0][i].addPort(type[index]);
-                    map[0][i+1].addPort(type[index]);
+                Vector2 port1 = new Vector2(0, 0);
+                Vector2 port2 = new Vector2(0, 0);
+
+                switch(j) {
+                    case 0: port1 = new Vector2(2*(i+1), 0);
+                        if(state == 0) port2 = new Vector2(1+2*i, 0);
+                        else port2 = new Vector2(2*(i+1)+1, 0); break;
+                    case 1: port1 = new Vector2(map[i+1].length-(i+1==size?1:2), i+1);
+                        if(state == 0) port2 = new Vector2(map[i+1].length-1, i);
+                        else port2 = new Vector2(map[i+1].length-1, i+1); break;
+                    case 2: port1 = new Vector2(map[size+i].length-2, size+i);
+                        if(state == 0) port2 = new Vector2(map[size+i].length-1, size+i);
+                        else port2 = new Vector2(map[size+i+1].length-1, size+i+1); break;
+                    case 3: port1 = new Vector2(2*(size-i-1), 2*size-1);
+                        if(state == 0) port2 = new Vector2(2*(size-i-1)+1, 2*size-1);
+                        else port2 = new Vector2(2*(size-i-1)-1, 2*size-1); break;
+                    case 4: port1 = new Vector2(i+1==size?0:1, 2*size-i-2);
+                        if(state == 0) port2 = new Vector2(0, 2*size-i-1);
+                        else port2 = new Vector2(0, 2*size-i-2); break;
+                    default: port1 = new Vector2(1, size-i);
+                        if(state == 0) port2 = new Vector2(0, size-i);
+                        else port2 = new Vector2(0, size-i+1); break;
                 }
-                else if(j==3) {
-                    map[2*size-1][size-i].addPort(type[index]);
-                    map[2*size-1][size-i-1].addPort(type[index]);
-                }
+
+                map[port1.getY()][port1.getX()].addPort(type[index]);
+                map[port2.getY()][port2.getX()].addPort(type[index]);
+                //System.out.println("Adding port at ("+port1.getX()+";"+port1.getY()+") to ("+port2.getX()+";"+port2.getY()+")");
 
                 state++;
                 index++;

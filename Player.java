@@ -4,11 +4,12 @@ public class Player {
 
     private final String name;
     private final boolean bot;
-    private Ressource ressources;
+    protected Ressource ressources;
 
     private int score;
 
     LinkedList<Colony> colonies;
+    LinkedList<Port> ports;
 
     public Player(String name, boolean bot) {
         this.name = name;
@@ -16,6 +17,7 @@ public class Player {
 
         ressources = new Ressource();
         this.colonies = new LinkedList<>();
+        this.ports = new LinkedList<>();
 
         this.score = 0;
     }
@@ -37,6 +39,23 @@ public class Player {
     public boolean possesse(Ressource r) { return ressources.contain(r); }
     public void pay(Ressource r) { ressources.remove(r); }
     public void receive(Ressource r) { ressources.add(r); }
+    public void addPort(int port) {
+        Port p = new Port(port, port==5?3:2);
+        ports.add(p);
+    }
+    public Port[] getPorts() { 
+        Object[] arr = this.ports.toArray(); 
+        Port[] res = new Port[arr.length];
+        for(int i = 0; i < arr.length; i++)
+            res[i] = (Port)arr[i];
+        return res;
+    }
+    public Port getPort(int i) { 
+        for(Port port : ports) 
+            if(port.getType() == i)
+                return port;
+        throw new NullPointerException();
+    }
 
     public boolean isBlocked() { 
         for(Colony col : colonies) 
@@ -54,4 +73,6 @@ public class Player {
     public String toString() {
         return "Player " + name + " : " + (bot?"Bot":"Human");
     }
+
+    public String getName() { return this.name; }
 }   

@@ -94,16 +94,20 @@ public class Colony {
         String res = "";
         for(Tiles tile : tiles) {
             String t;
-            switch(tile.getType()) {
-                case 0: t = "Field"; break;
-                case 1: t = "Forest"; break;
-                case 2: t = "Pasture"; break;
-                case 3: t = "Rock"; break;
-                case 4: t = "Clay"; break;
-                default: t = "Desert"; break;
-            }
-            res += "- type : " + t + "\n";
+            res += "- type : " + getType(tile.getType()) + "\n";
         }
+        if(port != -1) res += "- port : " + getType(port) + "\n";
         return res;
+    }
+
+    private String getType(int t) {
+        switch(t) {
+            case 0: return "Field"; 
+            case 1: return "Forest"; 
+            case 2: return "Pasture"; 
+            case 3: return "Rock";
+            case 4: return "Clay";
+            default: return "Desert";
+        }
     }
 }

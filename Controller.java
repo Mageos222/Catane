@@ -85,6 +85,8 @@ public class Controller {
             game.getMap().buildVillage(game.getTurn(), x1, y1);
             canBuildVillage = false;
             game.getPlayer()[game.getTurn()].addColony(game.getMap().getColony(x1, y1));
+            if(game.getMap().getColony(x1, y1).getPort() > -1) 
+                game.getPlayer()[game.getTurn()].addPort(game.getMap().getColony(x1, y1).getPort());
             System.out.println("Colony (" + x1+";"+y1+"):\n"+game.getMap().getColony(x1, y1).toString());
         }
         else if(isTown && !isVillage && game.getPlayer()[game.getTurn()].possesse(townCost)) {
@@ -296,6 +298,11 @@ public class Controller {
             for(int i = 0; i < game.getPlayer().length; i++) 
                 if(i != game.getTurn() && game.getPlayer()[i].possesse(dealVal[1]))
                     count++;
+            for(Port port : dealPlayer[0].getPorts())
+                if(port.possesse(dealVal[1]) && port.getCost()*dealVal[1].sum() <= dealVal[0].sum()) {
+                    count++;
+                    break;
+                }
 
             int[] players = new int[count];
             int index = 0;
@@ -303,6 +310,11 @@ public class Controller {
                 if(i != game.getTurn() && game.getPlayer()[i].possesse(dealVal[1])) {
                     players[index] = i;
                     index++;
+                }
+            for(Port port : dealPlayer[0].getPorts())
+                if(port.possesse(dealVal[1]) && port.getCost()*dealVal[1].sum() <= dealVal[0].sum()) {
+                    players[index] = port.getType()+4;
+                    break;
                 }
 
             canvas.showPlayersChoice(players);
@@ -343,8 +355,13 @@ public class Controller {
         if(selectedPlayer == player) {
             selectedPlayer = -1;
             if(!steal) {
-                game.getPlayer()[player].pay(dealVal[1]);
-                game.getPlayer()[player].receive(dealVal[0]);
+                Player target;
+                if(player <= 3) target = game.getPlayer()[player];
+                else target = dealPlayer[0].getPort(player-4);
+                System.out.println("Deal with " + target.getName());
+
+                target.pay(dealVal[1]);
+                target.receive(dealVal[0]);
                 dealPlayer[0].pay(dealVal[0]);
                 dealPlayer[0].receive(dealVal[1]);
             }
