@@ -1,14 +1,15 @@
-import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import GameEngine.BoxCollider;
 import GameEngine.CircleCollider;
 import GameEngine.GameObject;
 import GameEngine.Renderer;
+import GameEngine.Transform;
 import GameEngine.UI;
 
 import java.awt.*;
 
-public class Home extends Thread {
+public class Home {
     private UI ui;
 
     private GameObject newButton;
@@ -29,24 +30,25 @@ public class Home extends Thread {
     private int nbPlayer = 3;
     private boolean[] bot;
 
-    public Home(Game game) {
+    public Home(Transform run) {
         ui = new UI();
-        ui.setDimension(720, 480);
+        ui.setDimension(run.getSize().getX(), run.getSize().getY());
+        ui.setLocation(run.getPosition().getX(), -run.getPosition().getY());
         ui.setBackground("Images/Buttons/WoodBack.jpg");
 
-        init(game);
+        init(run);
     }
 
-    public Home(Game game, int w, int h, int x, int y) {
+    public Home(Transform run, int w, int h, int x, int y) {
         ui = new UI();
         ui.setDimension(w, h);
         ui.setLocation(x, y);
         ui.setBackground("Images/Buttons/WoodBack.jpg");
 
-        init(game);
+        init(run);
     }
     
-    public void init(Game game) {
+    public void init(Transform run) {
         newButton = new GameObject(new String[] {"Images/Buttons/button1-1.png", "Images/Buttons/button1-2.png"}, 300, 100);
         newButton.transform().setPosition(0, 100);
 
@@ -94,7 +96,7 @@ public class Home extends Thread {
             playButton.renderer().setImage(0);
             ui.setCursor(Cursor.getDefaultCursor());
         });
-        playButton.collider().setOnMouseClickedAction(() -> startNewGame(ui, game));
+        playButton.collider().setOnMouseClickedAction(() -> startNewGame(ui, run));
 
         backButton = new GameObject(new String[] { "Images/Buttons/backButton2.png", "Images/Buttons/backButton.png" }, 300, 100);
         backButton.transform().setPosition(800, 400);
@@ -165,18 +167,22 @@ public class Home extends Thread {
         bot = new boolean[4];  
     }
 
-    public void run() {
+    public Player[] run() {
         while(ui.isActive()) {
             ui.nextFrame();
             
             try {
-                sleep(50);
+                TimeUnit.MILLISECONDS.sleep(50);
             } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
+                break;
             }
         }
+        Player[] players = new Player[nbPlayer];
+        for(int i = 0; i < nbPlayer; i++) 
+                players[i] = new Player("Player " + (i+1), bot[i]);
 
         System.out.println("Home closed");
+        return players;
     }
 
     public void changeScreen(boolean state) {
@@ -243,7 +249,7 @@ public class Home extends Thread {
         bot[i] = !bot[i];
     }
 
-    public void startNewGame(UI ui, Game game) {
+    public void startNewGame(UI ui, Transform run) {
         MusicPlayer button = new MusicPlayer("Music/button.wav");
         button.play();
 
@@ -253,13 +259,9 @@ public class Home extends Thread {
         int posX = ui.getPosX();
         int posY = ui.getPosY();
 
-        Player[] players = new Player[nbPlayer];
-        for(int i = 0; i < nbPlayer; i++) 
-            players[i] = new Player("Player " + (i+1), bot[i]);
-
         ui.close();
-        this.interrupt();
-        game.init(players, posX, posY, width, height);
-        game.start();
+
+        run.setSize(width, height);
+        run.setPosition(posX, posY);
     }
 }

@@ -1,37 +1,24 @@
-import GameEngine.*;
-import GameEngine.RessourceManager;
-
-import java.util.List;
 import java.util.Random;
-import java.util.concurrent.TimeUnit;
-import java.awt.*;
 
 public class Game extends Thread {
     
     private Player[] players;
     private int turn;
-    private boolean turnAction;
 
     private Map map;
     private int size;
-    private UI ui;
 
-    private Controller controller;
     private Canvas canvas;
 
-    private LoadingPage loading;
-
     private int nbTurn;
-    private boolean ressourceDistrib;
-
-    private GameObject dice1;
-    private GameObject dice2;
-    private GameObject dice1Small;
-    private GameObject dice2Small;
 
     private int dice1Value;
     private int dice2Value;
     private int diceAnim = 0;
+
+    private static final Ressource roadCost = new Ressource(0, 1, 0, 0, 1);
+    private static final Ressource villageCost = new Ressource(1, 1, 1, 0, 1);
+    private static final Ressource townCost = new Ressource(2, 0, 0, 3, 0);
 
     public Game(int size) {
         this.size = size;
@@ -39,126 +26,114 @@ public class Game extends Thread {
         this.turn = 0;
     }
 
-    public void init(Player[] players, int posX, int posY, int width, int height) {
+    public void init(Player[] players, Canvas canvas) {
         this.players = players;
-
-        ui = new UI();
-        ui.setDimension(width, height);
-        ui.setLocation(posX, posY);
-        ui.setVisible(false);
-
-        controller = new Controller(this, ui);
-        canvas = new Canvas(this, controller, ui);
-        controller.setCanvas(canvas);
-
-        loading = new LoadingPage(posX, posY, width, height);
-        loading.start();
+        this.canvas = canvas;
     }
 
     @Override
     public void run() {
-        this.map = new Map(size, ui, canvas, controller);
+        this.map = new Map(size, canvas);
+        canvas.drawCanvas(this, players.length, size);
+    }
 
-        String[] dice = new String[6];
-        for(int i = 1; i <= 6; i++) dice[i-1] = "Images/GamePage/dice"+i+".png";
-
-        dice1 = new GameObject(dice, 200, 200);
-        dice2 = new GameObject(dice, 200, 200);
-        dice1Small = new GameObject(dice, 75, 75);
-        dice2Small = new GameObject(dice, 75, 75);
-        
-        canvas.drawCanvas();
-
-        FPSCounter fps;
-        fps = new FPSCounter(ui);
-        fps.start();
-        //fps.show();
-
-        Random rnd = new Random();
-
-        while(ui.isActive() || loading != null) {
-            if(loading != null && fps.getFPS() > 0) {
-                ui.setLocation(loading.getX(), loading.getY());
-
-                loading.close();
-                loading.interrupt();
-                loading = null;
-
-                ui.setVisible(true);
-            }
-
-            List<UI.Event> events = ui.nextFrame();
-
-            for(UI.Event event : events) {
-                if(event == UI.Event.MOUSE_RIGHT_CLICK) {
-                    controller.setAddObject(false);
-                    ui.setCursor(Cursor.getDefaultCursor());
-                }
-            }
-
-            if(nbTurn == 2*players.length && !ressourceDistrib) {
-                ressourceDistrib = true;
-                for(Player player : players)
-                    player.collect();
-                controller.updateText();
-            }
-
-            if(!turnAction && nbTurn >= 2*players.length) {
-                turnAction = true;
-                diceAnim++;
-
-                dice1Value = rnd.nextInt(6)+1;
-                dice2Value = rnd.nextInt(6)+1;
-
-                dice1.renderer().setVisible(true);
-                dice2.renderer().setVisible(true);
-                    
-                System.out.println("Value of dice : " + dice1Value + "+" + dice2Value + " => " + (dice1Value+dice2Value));
-                if(dice1Value+dice2Value == 7) {
-                    controller.setRobber(true);
-                }
-            }
-
-            playDiceAnim();
-            
-            try {
-                sleep(50);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-        }
-
-        fps.interrupt();
-        System.out.println("Game closed");
+    public void update() {
+        playDiceAnim();
     }
 
     private void playDiceAnim() {
-        Random rnd = new Random();
+        canvas.playDiceAnim(diceAnim, dice1Value, dice2Value);
         if(diceAnim > 0) {
-            if(diceAnim < 15) {
-                dice1.renderer().setImage(rnd.nextInt(6));
-                dice2.renderer().setImage(rnd.nextInt(6));
-            }
-            else if(diceAnim == 15) {
-                dice1.renderer().setImage(dice1Value-1);
-                dice2.renderer().setImage(dice2Value-1);
-            }
-            else if(diceAnim > 30) {
-                diceAnim = -1;
-                dice1.renderer().setVisible(false);
-                dice2.renderer().setVisible(false);
-
-                dice1Small.renderer().setImage(dice1Value-1);
-                dice2Small.renderer().setImage(dice2Value-1);
-                dice1Small.renderer().setVisible(true);
-                dice2Small.renderer().setVisible(true);
-
+            if(diceAnim > 30) {
                 for(Player player : players)
                     player.collect(dice1Value+dice2Value);
-                controller.updateText();
+                updateText();
+                diceAnim = -1;
             }
             diceAnim++;
         }
+    }
+
+    public void updateText() {
+        for(int j = 0; j < players.length; j++)
+            for(int i = 0; i < 5; i++) 
+                canvas.getRessourceText()[j][i].renderer().setImages(String.valueOf(players[j].getRessource(i)));
+    }
+
+    public int changeTurn() {
+        canvas.getProfils()[turn].transform().scale(0.8);
+
+        turn = (turn+1)%3;
+        nbTurn++;
+        
+        canvas.getProfils()[turn].transform().scale(1.2);
+        
+        if(nbTurn == 2*players.length) {
+            for(Player player : players)
+                player.collect();
+            updateText();
+        }
+        if(nbTurn >= 2*players.length) {
+            Random rnd = new Random();
+
+            diceAnim++;
+
+            dice1Value = rnd.nextInt(6)+1;
+            dice2Value = rnd.nextInt(6)+1;
+
+            canvas.showDices();
+                
+            System.out.println("Value of dice : " + dice1Value + "+" + dice2Value + " => " + (dice1Value+dice2Value));
+        }
+
+        return nbTurn < 2*players.length?-1:(dice1Value+dice2Value);
+    }
+
+    public void setRobber() {
+        if(map != null) map.resetBlocked();
+    }
+
+    public boolean canBuildRoad(boolean free, int x1, int y1, int x2, int y2) {
+        return (free || players[turn].possesse(roadCost)) && map.canBuildRoad(turn, y1, x1, y2, x2);
+    }
+
+    public boolean canBuildVillage(boolean free, int x, int y) {
+        return (free && map.canBuildFirstVillage(turn, x, y)) || (players[turn].possesse(villageCost) && map.canBuildVillage(turn, x, y));
+    }
+
+    public boolean canBuildTown(int x, int y) {
+        return players[turn].possesse(townCost);
+    }
+
+    public void addRoad(int x1, int y1, int x2, int y2, boolean pay) {
+        if(pay) {
+            players[turn].pay(roadCost);
+            players[turn].increment(1);
+            updateText();
+        }
+        map.buildRoad(turn, y1, x1, y2, x2);
+    }
+
+    public void addVillage(int x, int y, boolean pay) {
+        if(pay) {
+            players[turn].pay(villageCost);
+            players[turn].increment(1);
+            updateText();
+        }
+
+        map.buildVillage(turn, x, y);
+
+        players[turn].addColony(map.getColony(x, y));
+        if(map.getColony(x, y).getPort() > -1) 
+            players[turn].addPort(map.getColony(x, y).getPort());
+
+        System.out.println("Colony (" + x+";"+y+"):\n"+map.getColony(x, y).toString());
+    }
+
+    public void addTown(int x, int y) {
+        players[turn].pay(townCost);
+        map.getColony(x, y).upgrade();
+        updateText();
     }
 
     public int getTurn() { return turn; }
@@ -167,49 +142,10 @@ public class Game extends Thread {
     public void increment() { this.nbTurn++; }
 
     public Player[] getPlayer() { return players; }
+    public Player getCurrentPlayer() { return this.players[turn]; }
     public Map getMap() { return this.map; }
     
-    public void setTurnAction(boolean v) {this.turnAction = v;}
-
     public int getSize() { return this.size; }
 
-    public GameObject getDice1() { return this.dice1; }
-    public GameObject getDice2() { return this.dice2; }
-    public GameObject getDice1Small() { return this.dice1Small; }
-    public GameObject getDice2Small() { return this.dice2Small; }
-
     public boolean isPlayingAnim() { return diceAnim > 0; }
-
-    public static void main(String[] args) {
-        RessourceManager manager = new RessourceManager();
-        manager.load("Images/LoadingPage", false);
-
-        MusicPlayer music = new MusicPlayer("Music/Music.wav");
-        //music.loop();
-
-        LoadingPage loading = new LoadingPage(0, 0, 720, 480);
-        loading.start();
-
-        manager.load("Images");
-
-        waitManager();
-
-        loading.close();
-        loading.interrupt();
-
-        Home home = new Home(new Game(3));
-        home.start();
-    }
-
-    private static void waitManager() {
-        while(true) {
-            if(!RessourceManager.isLoading())
-                return;
-            try {
-                TimeUnit.MILLISECONDS.sleep(50);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    }
 }

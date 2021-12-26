@@ -1,11 +1,9 @@
 import GameEngine.*;
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.Random;
 
 public class Controller {
     private Game game;
-    private UI ui;
     private Canvas canvas;
 
     private boolean canBuildVillage;
@@ -13,10 +11,6 @@ public class Controller {
     private boolean robber;
 
     private boolean addObject = false;
-
-    private final Ressource roadCost = new Ressource(0, 1, 0, 0, 1);
-    private final Ressource villageCost = new Ressource(1, 1, 1, 0, 1);
-    private final Ressource townCost = new Ressource(2, 0, 0, 3, 0);
 
     private Player[] dealPlayer;
     private int maxDeal;
@@ -29,9 +23,9 @@ public class Controller {
 
     private boolean steal;
 
-    public Controller(Game g, UI u) {
+    public Controller(Game g, Canvas c) {
         this.game = g;
-        this.ui = u;
+        this.canvas = c;
 
         canBuildRoad = 1;
         canBuildVillage = true;
@@ -48,60 +42,30 @@ public class Controller {
         this.dealPlayer = new Player[2];
     }
 
-    public void setCanvas(Canvas c) { this.canvas = c; }
-
-    public void updateText() {
-        for(int j = 0; j < game.getPlayer().length; j++)
-            for(int i = 0; i < 5; i++) 
-                canvas.getRessourceText()[j][i].renderer().setImages(String.valueOf(game.getPlayer()[j].getRessource(i)));
-    }
-
     public void setNewObject() {
         if(robber) return;
         addObject = true;
-        ui.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        canvas.setCursor(12);
     }
 
     public void build(GameObject object, int x1, int y1, int x2, int y2, boolean isVillage, boolean isTown) {
         if(!object.collider().isHover() || !addObject) return;
 
-        if(!isTown && (canBuildRoad > 0 || game.getPlayer()[game.getTurn()].possesse(roadCost)) && game.getMap().canBuildRoad(game.getTurn(), y1, x1, y2, x2)) {
-            if(canBuildRoad == 0) {
-                game.getPlayer()[game.getTurn()].pay(roadCost);
-                game.getPlayer()[game.getTurn()].increment(1);
-                updateText();
-            }
-            game.getMap().buildRoad(game.getTurn(), y1, x1, y2, x2);
+        if(!isTown && game.canBuildRoad(canBuildRoad > 0, x1, y1, x2, y2)) {
+            game.addRoad(x1, y1, x2, y2, canBuildRoad==0);
             canBuildRoad--;
-            //System.out.println("road");
+
+            object.collider().setOnHoverEnterAction(() -> { });
+            object.collider().setOnHoverExitAction(() -> { });
+
+            System.out.println("Road builded");
         }
-        else if(isVillage && ((canBuildVillage && game.getMap().canBuildFirstVillage(game.getTurn(), x1, y1)) || 
-                            (game.getPlayer()[game.getTurn()].possesse(villageCost) && game.getMap().canBuildVillage(game.getTurn(), x1, y1)))) {
-            if(!canBuildVillage) {
-                game.getPlayer()[game.getTurn()].pay(villageCost);
-                game.getPlayer()[game.getTurn()].increment(1);
-                updateText();
-            }
-            game.getMap().buildVillage(game.getTurn(), x1, y1);
+        else if(isVillage && game.canBuildVillage(canBuildVillage, x1, y1)) {
+            game.addVillage(x1, y1, !canBuildVillage);
             canBuildVillage = false;
-            game.getPlayer()[game.getTurn()].addColony(game.getMap().getColony(x1, y1));
-            if(game.getMap().getColony(x1, y1).getPort() > -1) 
-                game.getPlayer()[game.getTurn()].addPort(game.getMap().getColony(x1, y1).getPort());
-            System.out.println("Colony (" + x1+";"+y1+"):\n"+game.getMap().getColony(x1, y1).toString());
-        }
-        else if(isTown && !isVillage && game.getPlayer()[game.getTurn()].possesse(townCost)) {
-            game.getPlayer()[game.getTurn()].pay(townCost);
-            game.getMap().getColony(x1, y1).upgrade();
-            updateText();
-            System.out.println("town");
-        }
-        else return;
 
-        object.collider().setHover(false);
-        addObject = false;
-
-        if(isVillage) {
-            BufferedImage[] images = {object.renderer().getImages()[object.renderer().getRenderIndex()],
+            BufferedImage[] images = {
+                object.renderer().getImages()[object.renderer().getRenderIndex()],
                 tower.renderer().getImages()[object.renderer().getRenderIndex()]};
             object.renderer().setImages(images);
             object.renderer().setImage(0);
@@ -111,19 +75,20 @@ public class Controller {
             object.collider().setOnHoverExitAction(() -> unsnapUpdate(object, actualTurn));
             object.collider().setOnMouseClickedAction(() -> build(object, x1, y1, x2, y2, false, true));
         }
-        else {
-            if(isTown) {
-                object.collider().setOnHoverEnterAction(() -> focus(object, 10));
-                object.collider().setOnHoverExitAction(() -> unfocus(object, 10));
-            }
-            else {
-                object.collider().setOnHoverEnterAction(() -> { });
-                object.collider().setOnHoverExitAction(() -> { });
-            }
-            object.collider().setOnMouseClickedAction(() -> { });
-        }
+        else if(isTown && !isVillage && game.canBuildTown(x1, y1)) {
+            game.addTown(x1, y1);
 
-        ui.setCursor(Cursor.getDefaultCursor());
+            object.collider().setOnHoverEnterAction(() -> focus(object, 10));
+            object.collider().setOnHoverExitAction(() -> unfocus(object, 10));
+        }
+        else return;
+
+        object.collider().setHover(false);
+        addObject = false;
+
+        if(!isVillage) object.collider().setOnMouseClickedAction(() -> { });
+
+        canvas.setCursor(0);
     }
 
     public void focus(GameObject object, int size) {
@@ -170,50 +135,27 @@ public class Controller {
     public void nextTurn() {
         if(canBuildRoad > 0 || canBuildVillage || robber || game.isPlayingAnim()) return;
 
-        canvas.getProfils()[game.getTurn()].transform().scale(0.8);
-
-        game.setTurn((game.getTurn()+1) % game.getPlayer().length);
-        game.increment();
-        if(game.getNbTurn() < 2*game.getPlayer().length) {
+        int next = game.changeTurn();
+        if(next == -1) {
             canBuildVillage = true;
             canBuildRoad = 1;
         }
-
-        canvas.getProfils()[game.getTurn()].transform().scale(1.2);
-        game.setTurnAction(false);
+        else if(next == 7) robber = true;
 
         addObject = false;
+        canvas.setCursor(0);
     }
 
-    public void addRessourceText(int index, int x, int y, Renderer.Align align) {
-        String[] file = new String[] { "wheatIco.png", "wood.png", "sheepIco.png", "rock.png", "clay.png" };
-
-        canvas.getRessourceText()[index] = new GameObject[5];
-        for(int i = 0; i < 5; i++) {
-            canvas.getRessourceText()[index][i] = new GameObject(50, 75);
-            canvas.getRessourceText()[index][i].transform().setPosition(x-(x/Math.abs(x))*i*60, y-30);
-            canvas.getRessourceText()[index][i].addComponent(new TextRenderer(canvas.getRessourceText()[0][i], "0"));
-            canvas.getRessourceText()[index][i].renderer().setZindex(1);
-            canvas.getRessourceText()[index][i].renderer().setAlign(align);
-            ui.add(canvas.getRessourceText()[index][i]);
-
-            GameObject icon = new GameObject("Images/GamePage/" + file[i], 50, 50);
-            icon.transform().setPosition(x-(x/Math.abs(x))*i*60, y+30);
-            icon.renderer().setZindex(1);
-            icon.renderer().setAlign(align);
-            ui.add(icon);
-        }
-    }
-
-    public void moveVoleur(int x, int y) {
+    public void moveRobber(int x, int y) {
         if(!robber) return;
-        canvas.moveVoleur(x, -y);
+        canvas.moveRobber(x, -y);
     }
 
-    public void putVoleur(Colony[] colonies) {
+    public void putRobber(Colony[] colonies) {
         if(!robber) return;
 
-        if(game.getMap() != null) game.getMap().resetBlocked();
+        game.setRobber();
+
         for(Colony colony : colonies)
             colony.setBlocked(true);
 
@@ -222,12 +164,9 @@ public class Controller {
     }
 
     public void addValueToDealProp(int val) {
-        dealVal[dealTurn].add(val, 1);
-
-        if((dealPlayer[dealTurn] != null && !dealPlayer[dealTurn].possesse(dealVal[dealTurn])) || dealVal[dealTurn].sum() > maxDeal) {
-            dealVal[dealTurn].add(val, -1);
-            return;
-        }
+        if(!(dealPlayer[dealTurn] != null && !dealPlayer[dealTurn].possesse(dealVal[dealTurn])) && dealVal[dealTurn].sum() <= maxDeal) 
+            dealVal[dealTurn].add(val, 1);
+        else return;
 
         canvas.getSignTexts()[val].renderer().setImages(String.valueOf(dealVal[dealTurn].getRessource(val)));
     }
@@ -239,7 +178,7 @@ public class Controller {
 
         maxDeal = 5;
         dealTurn = 0;
-        dealPlayer[0] = game.getPlayer()[game.getTurn()];
+        dealPlayer[0] = game.getCurrentPlayer();
         dealPlayer[1] = null;
 
         canvas.getSignInfo().renderer().setImages("What do you want to exchange?");
@@ -263,7 +202,7 @@ public class Controller {
             }
 
         steal = true;
-        dealPlayer[0] = game.getPlayer()[game.getTurn()];
+        dealPlayer[0] = game.getCurrentPlayer();
 
         canvas.getSign().renderer().setVisible(true);
         canvas.getSign().collider().setActiv(true);
@@ -377,7 +316,7 @@ public class Controller {
             steal = false;
 
             closeDeal();
-            updateText();
+            game.updateText();
         }
     }
 

@@ -1,16 +1,20 @@
 import java.util.concurrent.TimeUnit;
 
 import GameEngine.GameObject;
+import GameEngine.Transform;
 import GameEngine.UI;
 
 public class LoadingPage extends Thread {
-    UI ui;
+    private UI ui;
+    private Transform value;
 
-    public LoadingPage(int posX, int posY, int width, int height) {
+    public LoadingPage(int posX, int posY, int width, int height, Transform value) {
         ui = new UI();
         ui.setDimension(width, height);
         ui.setLocation(posX, posY);
         ui.setBackground("Images/Buttons/WoodBack.jpg");
+
+        this.value = value;
 
         String[] images = new String[12];
         for(int i = 0; i < 12; i++) images[i] = "Images/LoadingPage/anim" + (i+1) + ".png";
@@ -34,6 +38,8 @@ public class LoadingPage extends Thread {
             }
         }
 
+        value.setPosition(ui.getPosX(), ui.getPosY());
+        value.setSize(ui.getWidth(), ui.getHeight());
         System.out.println("loading closed");
     }
 
@@ -41,6 +47,7 @@ public class LoadingPage extends Thread {
 
     public void close() {
         ui.close();
+        interrupt();
     }
 
     public int getX() { return ui.getPosX(); }

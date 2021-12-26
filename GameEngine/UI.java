@@ -2,6 +2,7 @@ package GameEngine;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import javax.imageio.ImageIO;
 
@@ -9,11 +10,10 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.awt.event.*; 
+import java.awt.event.*;
+import java.awt.event.*;  
 
 public class UI extends Canvas {
-    public enum Event { MOUSE_LEFT_CLICK, MOUSE_RIGHT_CLICK } 
-
     private Frame f;
 
     private static final int WIDTH = 1920;
@@ -76,12 +76,8 @@ public class UI extends Canvas {
             public void mouseEntered(MouseEvent e) { /* not used */ }  
             public void mouseExited(MouseEvent e) { /* not used */ }  
             public void mousePressed(MouseEvent e) { 
-                if(e.getButton() == 1) {
+                if(e.getButton() == 1) 
                     mouseClicked = true;
-                    events.add(Event.MOUSE_LEFT_CLICK);
-                }
-                else if(e.getButton() == 3) 
-                    events.add(Event.MOUSE_RIGHT_CLICK);
             }  
             public void mouseReleased(MouseEvent e) { /* not used */ } 
         });  
@@ -106,18 +102,13 @@ public class UI extends Canvas {
         }
     }
 
-    public List<Event> nextFrame() {
+    public void nextFrame() {
         if(rescale) rescale();
         checkCollision();
 
         nbFrame++;
 
-        draw(getGraphics());
-
-        List<Event> ret = new ArrayList<>(events);
-        events.clear();
-        
-        return ret;
+        repaint();
     }
 
     public void checkCollision() {
@@ -194,7 +185,8 @@ public class UI extends Canvas {
         this.gameObjects.remove(gameObject);
     }
 
-    public void draw(Graphics g) {
+    @Override
+    public void update(Graphics g) {
         if(isRescaled) rescaleObjects();
 
         BufferedImage frame = new BufferedImage(screenWidth,screenHeight, BufferedImage.TYPE_INT_ARGB);
@@ -267,6 +259,20 @@ public class UI extends Canvas {
         isRescaled = false;
     }
 
+    public void addMouseListener(Consumer<MouseEvent> action) {
+        addMouseListener(new MouseListener() {
+            public void mouseClicked(MouseEvent e) {  
+                // pass
+            }  
+            public void mouseEntered(MouseEvent e) { /* not used */ }  
+            public void mouseExited(MouseEvent e) { /* not used */ }  
+            public void mousePressed(MouseEvent e) { 
+                action.accept(e);
+            }  
+            public void mouseReleased(MouseEvent e) { /* not used */ } 
+        });  
+    }
+
     public void windowClosing (WindowEvent e) {  
         f.dispose();    
     }   
@@ -276,6 +282,7 @@ public class UI extends Canvas {
 
     @Override
     public void setCursor(Cursor cursor) { f.setCursor(cursor); }
+    public void setCursor(int cursor) { f.setCursor(Cursor.getPredefinedCursor(cursor)); }
     public void setDimension(int width, int height) { f.setSize(width, height);}
     
     @Override

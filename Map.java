@@ -1,12 +1,7 @@
 import GameEngine.Vector2;
 
-import java.rmi.server.Operation;
 import java.util.ArrayList;
 import java.util.Random;
-
-import GameEngine.CircleCollider;
-import GameEngine.GameObject;
-import GameEngine.UI;
 
 public class Map {
     
@@ -14,16 +9,7 @@ public class Map {
 
     private Colony[][] map;
 
-    public Map(int size, UI ui, Canvas canvas, Controller controller) {
-        String[] files = {
-            "Images/GamePage/wheat.png",
-            "Images/GamePage/lumber.png",
-            "Images/GamePage/sheep.png",
-            "Images/GamePage/ore.png",
-            "Images/GamePage/brick.png",
-            "Images/GamePage/Desert.png"
-        };
-
+    public Map(int size, Canvas canvas) {
         int tileSize = 520/size;
         int xOffset = (int)(0.5f*tileSize);
         int yOffset = (int)(0.74f*tileSize);
@@ -60,7 +46,7 @@ public class Map {
         Random rnd = new Random();
 
         // creation d'une liste avec les valeurs des biomes+
-        ArrayList<Integer> listType = new ArrayList<Integer>();
+        ArrayList<Integer> listType = new ArrayList<>();
                 
         for (int i=0; i<5; i++){
             listType.add(i);
@@ -109,24 +95,7 @@ public class Map {
                     }
                 }    
 
-                Vector2 pos = Vector2.multiply(new Vector2(2*(x+Math.max(0, y-size+1))-(size-1+y), size-y-1), new Vector2(xOffset, yOffset));
-
-                GameObject obj = new GameObject(files[type], tileSize, tileSize);       // creation d'un objet
-                obj.renderer().setZindex(1);
-                obj.transform().setPosition(pos);
-                obj.renderer().mix(tile.getImage());
-                
-                obj.addComponent(new CircleCollider(obj));
-                obj.collider().setOnHoverEnterAction(() -> controller.moveVoleur(pos.getX(), pos.getY()));
-                obj.collider().setOnHoverExitAction(() -> { });
-                obj.collider().setOnMouseClickedAction(() -> controller.putVoleur(adja));
-
-                ui.add(obj);
-
-                if(type == 5) { 
-                    controller.moveVoleur(pos.getX(), pos.getY());
-                    controller.putVoleur(adja);
-                }
+                canvas.addTile(x, y, tile, type, size, adja);
             }
         }
 
@@ -218,9 +187,6 @@ public class Map {
     }
 
     public boolean canBuildRoad(int j, int y1, int x1, int y2, int x2){
-        //if (map[y1][x1].getVillage() == j || map[y2][x2].getVillage() == j) return true;
-        //if (map[y1][x1].haveConn(j) && (map[y1][x1].getVillage() == -1 || map[y1][x1].getVillage() == j)) return true ;
-        //if (map[y2][x2].haveConn(j) && (map[y2][x2].getVillage() == -1 || map[y2][x2].getVillage() == j)) return true ;
         return (map[y1][x1].getVillage() == j || map[y2][x2].getVillage() == j) ||
             (map[y1][x1].haveConn(j) || map[y2][x2].haveConn(j)) &&
             (map[y1][x1].getVillage() < 0 || map[y1][x1].getVillage() == j || 
