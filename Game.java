@@ -139,7 +139,6 @@ public class Game extends Thread {
     public int getTurn() { return turn; }
     public void setTurn(int t) { this.turn = t; }
     public int getNbTurn() { return this.nbTurn; }
-    public void increment() { this.nbTurn++; }
 
     public Player[] getPlayer() { return players; }
     public Player getCurrentPlayer() { return this.players[turn]; }

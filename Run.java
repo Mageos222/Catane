@@ -25,8 +25,6 @@ public class Run {
         Player[] players = home.run();
 
         UI ui = new UI();
-        //ui.setSize(value.getSize().getX(), value.getSize().getY());
-        //ui.setLocation(value.getPosition().getX(), -value.getPosition().getY());
         ui.setVisible(false);
 
         Game game = new Game(3);

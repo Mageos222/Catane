@@ -59,6 +59,7 @@ public class UI extends Canvas {
             @Override
             public void windowClosing(WindowEvent we) {                
                 f.dispose();
+                System.exit(0);
             }
         });
 
@@ -108,7 +109,7 @@ public class UI extends Canvas {
 
         nbFrame++;
 
-        repaint();
+        draw(getGraphics());
     }
 
     public void checkCollision() {
@@ -185,8 +186,7 @@ public class UI extends Canvas {
         this.gameObjects.remove(gameObject);
     }
 
-    @Override
-    public void update(Graphics g) {
+    public void draw(Graphics g) {
         if(isRescaled) rescaleObjects();
 
         BufferedImage frame = new BufferedImage(screenWidth,screenHeight, BufferedImage.TYPE_INT_ARGB);
