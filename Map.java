@@ -48,14 +48,26 @@ public class Map {
         // creation d'une liste avec les valeurs des biomes+
         ArrayList<Integer> listType = new ArrayList<>();
                 
-        for (int i=0; i<5; i++){
-            listType.add(i);
-            listType.add(i);
+        for (int i=0; i<((2*size)-1)*((2*size)-1)-7 ; i++){
+            listType.add(i%5);
+
         }
         listType.add(5);
 
-        for(int i=0; i<3*size*(size-1)-10; i++){
-            listType.add(rnd.nextInt(5));
+        ArrayList<Integer> listValue = new ArrayList<>();
+
+        for (int i=0; i<((2*size)-1)*((2*size)-1)-6 ; i++){
+            if (i%10 == 0) listValue.add(6);
+            if (i%10 == 1) listValue.add(8);
+            if (i%10 == 2) listValue.add(5);
+            if (i%10 == 3) listValue.add(9);
+            if (i%10 == 4) listValue.add(4);
+            if (i%10 == 5) listValue.add(10);
+            if (i%10 == 6) listValue.add(3);
+            if (i%10 == 7) listValue.add(11);
+            if (i%10 == 8) listValue.add(2);
+            if (i%10 == 9) listValue.add(12);
+
         }
 
         for(int y = 0; y < 2*size - 1; y++) {
@@ -63,20 +75,26 @@ public class Map {
 
                 // TODO : 1 desert, min 2 de chaque type
 
-                int value = rnd.nextInt(11)+2; // 2-12 , Pas de 7
+                /*int value = rnd.nextInt(11)+2; // 2-12 , Pas de 7
                 while (value == 7){
                     value = rnd.nextInt(11)+2;
-                }
+                }*/
 
                 // creation des tiles avec des biomes de la liste 
                 int r = rnd.nextInt(listType.size());
                 int type = listType.get(r);
                 listType.remove(r);
 
+                int q = rnd.nextInt(listValue.size());
+                int value = listValue.get(q);
+                listValue.remove(q);
+
+
+
                 Colony[] adja = new Colony[6];
                 int counter = 0;
 
-                Tiles tile = new Tiles(new Vector2(x, y), type, value);
+                Tiles tile = new Tiles(new Vector2(x, y), type, value); //ICI 
                 for(int i = 2*x; i <= 2*x+2; i++) {
                     for(int j = y; j <= y+1; j++){
                         if(y < size - 1) {
@@ -114,6 +132,7 @@ public class Map {
         };
 
         int state = 0;
+        /*
         int[] type = new int[2+4*(size-1)]; //nombre de bateau (a test avec grande map)
 
         for (int i=0; i<type.length; i++){
@@ -124,6 +143,20 @@ public class Map {
             }
         }
         int index = 0;
+        */
+
+        Random rnd = new Random();
+        ArrayList<Integer> bat = new ArrayList<>();
+
+        for (int i=0; i<2+4*(size-1); i++){
+            if ((2+4*(size-1))-i <=(2+4*(size-1))%5){
+                bat.add(5);
+            } else {
+                bat.add(i%5);
+            }
+        }
+
+
 
         for(int j = 0; j < 6; j++) {
             for(int i = 0; i < size; i++) {
@@ -131,7 +164,12 @@ public class Map {
                     state = (state-2)%3;
                     continue;
                 }
-                canvas.addPort(op[j].x(i, size)*xMult, op[j].y(i, size)*yMult, size, op[j].v(state), type[index]);
+
+                int q = rnd.nextInt(bat.size());
+                int type = bat.get(q);
+                bat.remove(q);
+                
+                canvas.addPort(op[j].x(i, size)*xMult, op[j].y(i, size)*yMult, size, op[j].v(state), type);
 
                 Vector2 port1 = new Vector2(0, 0);
                 Vector2 port2 = new Vector2(0, 0);
@@ -157,12 +195,11 @@ public class Map {
                         else port2 = new Vector2(0, size-i+1); break;
                 }
 
-                map[port1.getY()][port1.getX()].addPort(type[index]);
-                map[port2.getY()][port2.getX()].addPort(type[index]);
+                map[port1.getY()][port1.getX()].addPort(type);
+                map[port2.getY()][port2.getX()].addPort(type);
                 //System.out.println("Adding port at ("+port1.getX()+";"+port1.getY()+") to ("+port2.getX()+";"+port2.getY()+")");
 
                 state++;
-                index++;
             }
 
             state++;

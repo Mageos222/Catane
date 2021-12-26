@@ -4,7 +4,7 @@ public abstract class Card {
     // University : add 1 point to the player score
     // Road : set canBuildRoad from Controller to 2 
 
-    private Controller controller;
+    protected Controller controller;
 
     protected Card(Controller controller) {
         this.controller = controller;

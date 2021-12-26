@@ -322,4 +322,5 @@ public class Controller {
 
     public void setRobber(boolean v) { this.robber = v; }
     public void setAddObject(boolean v) { this.addObject = v; }
+    public void setCanBuildRoad(int i) {this.canBuildRoad = i; }
 }
