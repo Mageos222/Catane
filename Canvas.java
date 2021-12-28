@@ -29,7 +29,7 @@ public class Canvas {
 
     private List<GameObject> temp;
 
-    public Canvas(Game g, UI u) {
+    public Canvas(UI u) {
         this.ui = u;
 
         this.signTexts = new GameObject[5];
@@ -38,7 +38,7 @@ public class Canvas {
 
     public void setController(Controller c) { this.controller = c; }
 
-    public void drawCanvas(Game game, int nbPlayer, int size) {
+    public void drawCanvas(int nbPlayer, int size) {
         this.profils = new GameObject[nbPlayer];
         this.ressourceText = new GameObject[nbPlayer][];
 
@@ -252,7 +252,7 @@ public class Canvas {
         });
     }
 
-    public void addEmptyVillage(int posX, int posY, int x, int y, int size) {
+    public GameObject addEmptyVillage(int posX, int posY, int x, int y, int size) {
         String[] houses = {"Images/Colonies/villageRed.png", "Images/Colonies/villageBlue.png", 
             "Images/Colonies/villageGreen.png", "Images/Colonies/villageYellow.png"};
         GameObject empty = new GameObject(houses, 220/size, 220/size);
@@ -265,6 +265,8 @@ public class Canvas {
         empty.collider().setOnHoverExitAction(() -> controller.unsnap(empty));
         empty.collider().setOnMouseClickedAction(() -> controller.build(empty, x, y, 0, 0, true, true));
         ui.add(empty);
+
+        return empty;
     }
 
     public void addEmptyRoad(int posX, int posY, int x1, int y1, int x2, int y2, int i, int size) {

@@ -48,8 +48,9 @@ public class Controller {
         canvas.setCursor(12);
     }
 
-    public void build(GameObject object, int x1, int y1, int x2, int y2, boolean isVillage, boolean isTown) {
-        if(!object.collider().isHover() || !addObject) return;
+    public boolean build(GameObject object, int x1, int y1, int x2, int y2, boolean isVillage, boolean isTown) {
+        //if(!object.collider().isHover() || !addObject) return;
+        if(!addObject) return false;
 
         if(!isTown && game.canBuildRoad(canBuildRoad > 0, x1, y1, x2, y2)) {
             game.addRoad(x1, y1, x2, y2, canBuildRoad==0);
@@ -81,7 +82,7 @@ public class Controller {
             object.collider().setOnHoverEnterAction(() -> focus(object, 10));
             object.collider().setOnHoverExitAction(() -> unfocus(object, 10));
         }
-        else return;
+        else return false;
 
         object.collider().setHover(false);
         addObject = false;
@@ -89,6 +90,8 @@ public class Controller {
         if(!isVillage) object.collider().setOnMouseClickedAction(() -> { });
 
         canvas.setCursor(0);
+
+        return true;
     }
 
     public void focus(GameObject object, int size) {

@@ -1,6 +1,6 @@
 import java.util.Random;
 
-public class Game extends Thread {
+public class Game {
     
     private Player[] players;
     private int turn;
@@ -26,19 +26,29 @@ public class Game extends Thread {
         this.turn = 0;
     }
 
-    public void init(Player[] players, Canvas canvas) {
+    public void init(Player[] players, Canvas canvas, Controller controller) {
         this.players = players;
         this.canvas = canvas;
+
+        for(Player player : players)
+            if(player.isBot()) {
+                Bot bot = (Bot)player;
+                bot.setController(controller);
+            }
     }
 
-    @Override
     public void run() {
         this.map = new Map(size, canvas);
-        canvas.drawCanvas(this, players.length, size);
+        canvas.drawCanvas(players.length, size);
     }
 
     public void update() {
         playDiceAnim();
+
+        if(players[turn].isBot()) {
+            Bot bot = (Bot)players[turn];
+            //bot.play(map.getMap(), turn <= 2*players.length);
+        }
     }
 
     private void playDiceAnim() {

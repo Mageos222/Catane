@@ -28,38 +28,34 @@ public class Run {
         ui.setVisible(false);
 
         Game game = new Game(3);
-        Canvas canvas = new Canvas(game, ui);
+        Canvas canvas = new Canvas(ui);
         Controller controller = new Controller(game, canvas);
         canvas.setController(controller);
 
         LoadingPage loading = new LoadingPage(value.getPosition().getX(), -value.getPosition().getY(), 
                                                 value.getSize().getX(), value.getSize().getY(), value);
         loading.start();
-        game.init(players, canvas);
-        game.start();
+        game.init(players, canvas, controller);
+        game.run();
+        ui.setLocation(loading.getX(), loading.getY());
+        ui.setDimension(loading.getWidth(), loading.getHeight());
+
+        loading.close();
+        loading = null;
+
+        ui.setVisible(true);
 
         FPSCounter fps = new FPSCounter(ui);
         fps.start();
-        fps.show();
+        //fps.show();
 
         while(ui.isActive() || (loading != null && loading.isActiv())) {
-            if(loading != null && fps.getFPS() > 0) {
-                ui.setLocation(loading.getX(), loading.getY());
-                ui.setDimension(loading.getWidth(), loading.getHeight());
-
-                loading.close();
-                loading = null;
-
-                ui.setVisible(true);
-            }
-            else {
-                try {
-                    ui.nextFrame();
-                    game.update();
-                } catch(Exception e) {
-                    e.printStackTrace();
-                    System.exit(1);
-                }
+            try {
+                ui.nextFrame();
+                game.update();
+            } catch(Exception e) {
+                e.printStackTrace();
+                System.exit(1);
             }
 
             int count = fps.getFPS();

@@ -1,3 +1,4 @@
+import GameEngine.GameObject;
 import GameEngine.Vector2;
 
 import java.util.ArrayList;
@@ -10,6 +11,7 @@ public class Map {
     private Colony[][] map;
 
     public Map(int size, Canvas canvas) {
+
         int tileSize = 520/size;
         int xOffset = (int)(0.5f*tileSize);
         int yOffset = (int)(0.74f*tileSize);
@@ -25,9 +27,9 @@ public class Map {
             int i = (y < size)?y:2*size-y-1;
             map[y] = new Colony[2*(size+i)+1];
             for(int x = 0; x < 2*(size+i)+1; x++) {
-                map[y][x] = new Colony();
+                GameObject object = canvas.addEmptyVillage((x-size-i)*xOffset, (int)((y-size+0.5f)*yOffset+yShift), x, y, size);
+                map[y][x] = new Colony(object);
 
-                canvas.addEmptyVillage((x-size-i)*xOffset, (int)((y-size+0.5f)*yOffset+yShift), x, y, size);
                 yShift = -yShift;
 
                 int nextX = x+(x%2==1?-1:y==size||y==size-1?0:1);
@@ -98,15 +100,15 @@ public class Map {
                 for(int i = 2*x; i <= 2*x+2; i++) {
                     for(int j = y; j <= y+1; j++){
                         if(y < size - 1) {
-                            map[j][i+(j-y)].add(tile);
+                            if(type != 5) map[j][i+(j-y)].add(tile);
                             adja[counter] = map[j][i+(j-y)];
                         }
                         else if(y == size - 1) {
-                            map[j][i].add(tile);
+                            if(type != 5) map[j][i].add(tile);
                             adja[counter] = map[j][i];
                         }
                         else {
-                            map[j][i+(j-y+1)%2].add(tile);
+                            if(type != 5) map[j][i+(j-y+1)%2].add(tile);
                             adja[counter] = map[j][i+(j-y+1)%2];
                         }
                         counter++;
@@ -116,12 +118,10 @@ public class Map {
                 canvas.addTile(x, y, tile, type, size, adja);
             }
         }
-
         placePort(canvas, xOffset, yOffset);
     }
 
     private void placePort(Canvas canvas, int xMult, int yMult) {
-
         PortOperation[] op = {
             new PortOperation() { public int x(int i, int size){return 2*i-size+2;} public int y(int i, int size){return size;} public int v(int state){return state==0?0:1;}},
             new PortOperation() { public int x(int i, int size){return size+1+i;} public int y(int i, int size){return size-i-1;} public int v(int state){return state==0?2:0;}},
@@ -156,8 +156,6 @@ public class Map {
             }
         }
 
-
-
         for(int j = 0; j < 6; j++) {
             for(int i = 0; i < size; i++) {
                 if(state == 2 || state == 1 && i == size - 1) {
@@ -174,12 +172,13 @@ public class Map {
                 Vector2 port1 = new Vector2(0, 0);
                 Vector2 port2 = new Vector2(0, 0);
 
+
                 switch(j) {
                     case 0: port1 = new Vector2(2*(i+1), 0);
                         if(state == 0) port2 = new Vector2(1+2*i, 0);
                         else port2 = new Vector2(2*(i+1)+1, 0); break;
                     case 1: port1 = new Vector2(map[i+1].length-(i+1==size?1:2), i+1);
-                        if(state == 0) port2 = new Vector2(map[i+1].length-1, i);
+                        if(state == 0) port2 = new Vector2(map[i].length-1, i);
                         else port2 = new Vector2(map[i+1].length-1, i+1); break;
                     case 2: port1 = new Vector2(map[size+i].length-2, size+i);
                         if(state == 0) port2 = new Vector2(map[size+i].length-1, size+i);
@@ -197,7 +196,8 @@ public class Map {
 
                 map[port1.getY()][port1.getX()].addPort(type);
                 map[port2.getY()][port2.getX()].addPort(type);
-                //System.out.println("Adding port at ("+port1.getX()+";"+port1.getY()+") to ("+port2.getX()+";"+port2.getY()+")");
+
+                //System.out.println("Adding port at ("+port1.getX()+";"+port1.getY()+") to ("+port2.getX()+";"+port2.getY()+")");*/
 
                 state++;
             }
@@ -205,9 +205,11 @@ public class Map {
             state++;
         }
 
+        System.out.println("All port placed");
     }
 
     public Colony getColony(int x, int y) { return map[y][x]; }
+    public Colony[][] getMap() { return this.map; }
 
     @Override
     public String toString() {

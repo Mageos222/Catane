@@ -3,17 +3,15 @@ import java.util.LinkedList;
 public class Player {
 
     private final String name;
-    private final boolean bot;
     protected Ressource ressources;
 
     private int score;
 
-    LinkedList<Colony> colonies;
-    LinkedList<Port> ports;
+    protected LinkedList<Colony> colonies;
+    private LinkedList<Port> ports;
 
-    public Player(String name, boolean bot) {
+    public Player(String name) {
         this.name = name;
-        this.bot = bot;
 
         ressources = new Ressource();
         this.colonies = new LinkedList<>();
@@ -71,8 +69,10 @@ public class Player {
 
     @Override
     public String toString() {
-        return "Player " + name + " : " + (bot?"Bot":"Human");
+        return "Player " + name + " : " + (isBot()?"Bot":"Human");
     }
 
     public String getName() { return this.name; }
+
+    public boolean isBot() { return false; }
 }   

@@ -11,7 +11,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.awt.event.*;
-import java.awt.event.*;  
 
 public class UI extends Canvas {
     private Frame f;
@@ -28,8 +27,6 @@ public class UI extends Canvas {
     private boolean mouseClicked = false;
     private boolean rescale = false;
     private boolean isRescaled = true;
-
-    private List<Event> events;
 
     private transient BufferedImage backgroundImg;
 
@@ -52,14 +49,12 @@ public class UI extends Canvas {
         f.setVisible(true); 
         
         gameObjects = new ArrayList<>();
-
-        this.events = new ArrayList<>();
         
         f.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent we) {                
                 f.dispose();
-                System.exit(0);
+                //System.exit(0);
             }
         });
 
@@ -109,7 +104,7 @@ public class UI extends Canvas {
 
         nbFrame++;
 
-        draw(getGraphics());
+        repaint();
     }
 
     public void checkCollision() {
@@ -186,7 +181,8 @@ public class UI extends Canvas {
         this.gameObjects.remove(gameObject);
     }
 
-    public void draw(Graphics g) {
+    @Override
+    public void update(Graphics g) {
         if(isRescaled) rescaleObjects();
 
         BufferedImage frame = new BufferedImage(screenWidth,screenHeight, BufferedImage.TYPE_INT_ARGB);
@@ -221,8 +217,13 @@ public class UI extends Canvas {
             index++;
         }
 
-        if(isActive())
-            g.drawImage(frame, 0, 0, screenWidth, screenHeight, this);
+        if(isActive()) {
+            try {
+                g.drawImage(frame, 0, 0, screenWidth, screenHeight, this);
+            } catch(NullPointerException e) {
+                System.out.println(frame);
+            }
+        }
         display.dispose();
     }
 

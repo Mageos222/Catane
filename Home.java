@@ -179,7 +179,7 @@ public class Home {
         }
         Player[] players = new Player[nbPlayer];
         for(int i = 0; i < nbPlayer; i++) 
-                players[i] = new Player("Player " + (i+1), bot[i]);
+            players[i] = bot[i]?new Bot("Bot" + (i+1)):new Player("Player " + (i+1));
 
         System.out.println("Home closed");
         return players;
@@ -263,5 +263,10 @@ public class Home {
 
         run.setSize(width, height);
         run.setPosition(posX, posY);
+    }
+
+    public void setVisible(boolean v) { 
+        ui.setVisible(v);
+        ui.nextFrame();
     }
 }

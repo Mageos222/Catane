@@ -1,4 +1,8 @@
+import GameEngine.GameObject;
+
 public class Colony {
+
+    GameObject object;
 
     private int connR;
     private int connL;
@@ -11,7 +15,9 @@ public class Colony {
     private boolean isBlocked;
     private int port = -1;
 
-    public Colony() {
+    public Colony(GameObject object) {
+        this.object = object;
+
         this.tiles = new Tiles[0];
         this.village = -1;
 
@@ -88,6 +94,9 @@ public class Colony {
 
     public void setBlocked(boolean v) { this.isBlocked = v; }
     public boolean isBlocked() { return this.isBlocked; }
+
+    public Tiles[] getTiles() { return this.tiles; }
+    public GameObject getObject() { return this.object; }
 
     @Override
     public String toString() {
