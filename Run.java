@@ -27,7 +27,7 @@ public class Run {
         UI ui = new UI();
         ui.setVisible(false);
 
-        Game game = new Game(4);
+        Game game = new Game(3);
         Canvas canvas = new Canvas(ui);
 
         Controller controller = new Controller(game, canvas);

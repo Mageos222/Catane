@@ -58,7 +58,7 @@ public class Map {
 
         ArrayList<Integer> listValue = new ArrayList<>();
 
-        for (int i=0; i<3*size*(size-1)+1 ; i++){
+        for (int i=0; i<3*size*(size-1); i++){
             if (i%10 == 0) listValue.add(6);
             if (i%10 == 1) listValue.add(8);
             if (i%10 == 2) listValue.add(5);
@@ -87,11 +87,13 @@ public class Map {
                 int type = listType.get(r);
                 listType.remove(r);
 
-                int q = rnd.nextInt(listValue.size());
-                int value = listValue.get(q);
-                listValue.remove(q);
-
-
+                int value;
+                if(type != 5) {
+                    int q = rnd.nextInt(listValue.size());
+                    value = listValue.get(q);
+                    listValue.remove(q);
+                }
+                else value = 7;
 
                 Colony[] adja = new Colony[6];
                 int counter = 0;
