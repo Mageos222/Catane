@@ -48,7 +48,7 @@ public class Map {
         // creation d'une liste avec les valeurs des biomes+
         ArrayList<Integer> listType = new ArrayList<>();
                 
-        for (int i=0; i<((2*size)-1)*((2*size)-1)-7 ; i++){
+        for (int i=0; i<3*size*(size-1) ; i++){
             listType.add(i%5);
 
         }
@@ -56,7 +56,7 @@ public class Map {
 
         ArrayList<Integer> listValue = new ArrayList<>();
 
-        for (int i=0; i<((2*size)-1)*((2*size)-1)-6 ; i++){
+        for (int i=0; i<3*size*(size-1)+1 ; i++){
             if (i%10 == 0) listValue.add(6);
             if (i%10 == 1) listValue.add(8);
             if (i%10 == 2) listValue.add(5);
