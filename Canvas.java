@@ -333,7 +333,7 @@ public class Canvas {
         GameObject obj = new GameObject(files[type], tileSize, tileSize);       // creation d'un objet
         obj.renderer().setZindex(1);
         obj.transform().setPosition(pos);
-        obj.renderer().mix(tile.getImage());
+        if(tile.getValue() != 7) obj.renderer().mix(tile.getImage());
         
         obj.addComponent(new CircleCollider(obj));
         obj.collider().setOnHoverEnterAction(() -> controller.moveRobber(pos.getX(), pos.getY()));
