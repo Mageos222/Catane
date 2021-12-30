@@ -20,6 +20,10 @@ public class Ressource {
         ressource[4] = clay;
     }
 
+    public Ressource(Ressource res) {
+        this(res.getRessource(0), res.getRessource(1), res.getRessource(2), res.getRessource(3), res.getRessource(4));
+    }
+
     public int getRessource(int t) { return ressource[t]; }
 
     public boolean contain(Ressource r) {
@@ -60,6 +64,11 @@ public class Ressource {
             if(ressource[i] != r.getRessource(i))
                 return false;
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return "wheat:"+ressource[0]+" wood:"+ressource[1]+" sheep:"+ressource[2]+" rock:"+ressource[3]+" clay:"+ressource[4];
     }
 
     // 5 getters 

@@ -52,6 +52,7 @@ public class Controller {
         //if(!object.collider().isHover() || !addObject) return;
         if(!addObject) return false;
 
+        System.out.println(game.canBuildRoad(canBuildRoad > 0, x1, y1, x2, y2));
         if(!isTown && game.canBuildRoad(canBuildRoad > 0, x1, y1, x2, y2)) {
             game.addRoad(x1, y1, x2, y2, canBuildRoad==0);
             canBuildRoad--;

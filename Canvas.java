@@ -27,6 +27,9 @@ public class Canvas {
     private GameObject dice1Small;
     private GameObject dice2Small;
 
+    GameObject winnerBackground;
+    GameObject winnerText;
+
     private List<GameObject> temp;
 
     public Canvas(UI u) {
@@ -243,6 +246,18 @@ public class Canvas {
         costCard.collider().setOnMouseClickedAction(() -> { });
         ui.add(costCard);
 
+        winnerBackground = new GameObject("Images/Buttons/WoodBack.png", 1920, 1080);
+        winnerBackground.renderer().setZindex(15);
+        ui.add(winnerBackground);
+
+        winnerText = new GameObject(1000, 50);
+        winnerText.addComponent(new TextRenderer(winnerText, "Nobody win"));
+        winnerText.renderer().setZindex(16);
+        winnerBackground.addChild(winnerText);
+        ui.add(winnerText);
+
+        winnerBackground.renderer().setVisible(false);
+
         ui.setBackground("Images/GamePage/Water.png");
         ui.addMouseListener((MouseEvent e) -> {
             if(e.getButton() == MouseEvent.BUTTON3) {
@@ -269,7 +284,7 @@ public class Canvas {
         return empty;
     }
 
-    public void addEmptyRoad(int posX, int posY, int x1, int y1, int x2, int y2, int i, int size) {
+    public GameObject addEmptyRoad(int posX, int posY, int x1, int y1, int x2, int y2, int i, int size) {
         String[][] imgFiles = { {"Images/Colonies/RoadRightRed.png", "Images/Colonies/RoadRightBlue.png", 
             "Images/Colonies/RoadRightGreen.png", "Images/Colonies/RoadRightYellow.png"}, 
         {"Images/Colonies/RoadLeftRed.png", "Images/Colonies/RoadLeftBlue.png", 
@@ -288,6 +303,8 @@ public class Canvas {
         emptyRoad.collider().setOnHoverExitAction(() -> controller.unsnap(emptyRoad));
         emptyRoad.collider().setOnMouseClickedAction(() -> controller.build(emptyRoad, x1, y1, x2, y2, false, false));
         ui.add(emptyRoad);
+
+        return emptyRoad;
     }
 
     public void addPort(int x, int y, int size, int orientation, int type) {
@@ -442,7 +459,7 @@ public class Canvas {
 
     public void playDiceAnim(int diceAnim, int dice1Value, int dice2Value) {
         Random rnd = new Random();
-        if(diceAnim > 0) {
+        if(diceAnim > 0 && (diceAnim%2==0 || diceAnim >= 15)) {
             if(diceAnim < 15) {
                 dice1.renderer().setImage(rnd.nextInt(6));
                 dice2.renderer().setImage(rnd.nextInt(6));
@@ -467,6 +484,11 @@ public class Canvas {
     public void showDices() {
         dice1.renderer().setVisible(true);
         dice2.renderer().setVisible(true);
+    }
+
+    public void showWinnerPannel(int winner) {
+        winnerBackground.renderer().setVisible(true);
+        winnerText.renderer().setImages("Player " + winner + " win");
     }
 
     public void setCursor(int cursor) {

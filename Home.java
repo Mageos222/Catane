@@ -179,7 +179,7 @@ public class Home {
         }
         Player[] players = new Player[nbPlayer];
         for(int i = 0; i < nbPlayer; i++) 
-            players[i] = bot[i]?new Bot("Bot" + (i+1)):new Player("Player " + (i+1));
+            players[i] = bot[i]?new Bot(i):new Player(i);
 
         System.out.println("Home closed");
         return players;

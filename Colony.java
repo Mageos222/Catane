@@ -2,11 +2,14 @@ import GameEngine.GameObject;
 
 public class Colony {
 
-    GameObject object;
+    private GameObject object;
 
     private int connR;
+    private GameObject roadR;
     private int connL;
+    private GameObject roadL;
     private int connSup;
+    private GameObject roadSup;
     private int village;
 
     private Tiles[] tiles;
@@ -97,6 +100,13 @@ public class Colony {
 
     public Tiles[] getTiles() { return this.tiles; }
     public GameObject getObject() { return this.object; }
+
+    public void setRoadR(GameObject road) { this.roadR = road; }
+    public void setRoadL(GameObject road) { this.roadL = road; }
+    public void setRoadSup(GameObject road) { this.roadSup = road; }
+    public GameObject getRoadR() { return this.roadR; }
+    public GameObject getRoadL() { return this.roadL; }
+    public GameObject getRoadSup() { return this.roadSup; }
 
     @Override
     public String toString() {

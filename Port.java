@@ -4,7 +4,7 @@ public class Port extends Player {
     private int cost;
 
     public Port(int type, int cost) {
-        super("Port " + type);
+        super(5);
         this.type = type;
         this.cost = cost;
 

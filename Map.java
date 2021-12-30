@@ -6,43 +6,39 @@ import java.util.Random;
 
 public class Map {
     
-    private int size = 3;
+    private int size;
 
     private Colony[][] map;
 
     public Map(int size, Canvas canvas) {
+        this.size = size;
 
         int tileSize = 520/size;
         int xOffset = (int)(0.5f*tileSize);
         int yOffset = (int)(0.74f*tileSize);
 
-        this.size = size;
         int yShift = (int)(0.1f*tileSize);
 
         // Map Init
         map = new Colony[size*2][];
-        int roadType = 1;
-
         for(int y = 0; y < size * 2; y++) {
             int i = (y < size)?y:2*size-y-1;
             map[y] = new Colony[2*(size+i)+1];
             for(int x = 0; x < 2*(size+i)+1; x++) {
-                GameObject object = canvas.addEmptyVillage((x-size-i)*xOffset, (int)((y-size+0.5f)*yOffset+yShift), x, y, size);
-                map[y][x] = new Colony(object);
+                map[y][x] = new Colony(canvas.addEmptyVillage((x-size-i)*xOffset, (int)((y-size+0.5f)*yOffset+yShift), x, y, size));
 
                 yShift = -yShift;
 
-                int nextX = x+(x%2==1?-1:y==size||y==size-1?0:1);
+                /*int nextX = x+(x%2==1?-1:y==size||y==size-1?0:1);
                 int nextY = y+(x%2==0&&y>=size||x%2==1&&y<size&&y>0||y>=map.length-1?-1:1);
 
                 if(x != 2*(size+i)) canvas.addEmptyRoad((x-size-i)*xOffset+xOffset/2, (int)((y-size+0.5f)*yOffset), x, y, x+1, y, roadType, size);
-                if(roadType == 1 && y != 2*size-1) canvas.addEmptyRoad((x-size-i)*xOffset, (int)((y-size+0.5f)*yOffset)+yOffset/2, x, y, nextX, nextY, 2, size);
-                
-                roadType = (roadType+1)%2;
+                if(roadType == 1 && y != 2*size-1) canvas.addEmptyRoad((x-size-i)*xOffset, (int)((y-size+0.5f)*yOffset)+yOffset/2, x, y, nextX, nextY, 2, size);*/
             }
             yShift = (y == size-1)?yShift:-yShift;
-            roadType = (y > size-2)?0:1;
         }
+
+        placeRoad(yShift, xOffset, yOffset, canvas);
 
         // Adding tiles for each Colony
         Random rnd = new Random();
@@ -123,6 +119,31 @@ public class Map {
         placePort(canvas, xOffset, yOffset);
     }
 
+    private void placeRoad(int yShift, int xOffset, int yOffset, Canvas canvas) {
+        int roadType = 1;
+
+        for(int y = 0; y < map.length; y++) {
+            for(int x = 0; x < map[y].length; x++) {
+                yShift = -yShift;
+                
+                int xPos = (x-size-(y<size?y:2*size-y-1))*xOffset;
+                int yPos = (int)((y-size+0.5f)*yOffset);
+
+                Vector2[] adjacent = getAdjacent(x, y);
+                if(adjacent[0] != null) 
+                    map[y][x].setRoadR(canvas.addEmptyRoad(xPos+xOffset/2, yPos, x, y, x+1, y, roadType, size));
+                if(roadType == 1 && adjacent[2] != null) 
+                    map[y][x].setRoadSup(canvas.addEmptyRoad(xPos, yPos+yOffset/2, x, y, adjacent[2].getX(), adjacent[2].getY(), 2, size));
+                else if(adjacent[2] != null) map[y][x].setRoadSup(map[adjacent[2].getY()][adjacent[2].getX()].getRoadSup());
+                if(adjacent[1] != null) map[y][x].setRoadL(map[adjacent[1].getY()][adjacent[1].getX()].getRoadR());
+
+                roadType = (roadType+1)%2;
+            }
+            yShift = (y == size-1)?yShift:-yShift;
+            roadType = (y > size-2)?0:1;
+        }
+    }
+
     private void placePort(Canvas canvas, int xMult, int yMult) {
         PortOperation[] op = {
             new PortOperation() { public int x(int i, int size){return 2*i-size+2;} public int y(int i, int size){return size;} public int v(int state){return state==0?0:1;}},
@@ -174,7 +195,6 @@ public class Map {
                 Vector2 port1 = new Vector2(0, 0);
                 Vector2 port2 = new Vector2(0, 0);
 
-
                 switch(j) {
                     case 0: port1 = new Vector2(2*(i+1), 0);
                         if(state == 0) port2 = new Vector2(1+2*i, 0);
@@ -212,6 +232,7 @@ public class Map {
 
     public Colony getColony(int x, int y) { return map[y][x]; }
     public Colony[][] getMap() { return this.map; }
+    public int getSize() { return this.size; }
 
     @Override
     public String toString() {
@@ -283,6 +304,31 @@ public class Map {
         for(Colony[] colonies : map)  
             for(Colony colony : colonies)
                 colony.setBlocked(false);
+    }
+
+    public Vector2[] getAdjacent(int x, int y) {
+        Vector2[] res = new Vector2[3];
+
+        if(x != map[y].length - 1) res[0] = new Vector2(x+1, y);
+        if(x != 0) res[1] = new Vector2(x-1, y);
+        if(y < size - 1) {
+            if(x%2 == 0) res[2] = new Vector2(x+1, y+1);
+            else if(y != 0) res[2] = new Vector2(x-1, y-1);
+        }
+        else if(y == size - 1) {
+            if(x%2 == 0) res[2] = new Vector2(x, y+1);
+            else res[2] = new Vector2(x-1, y-1);
+        }
+        else if(y == size) {
+            if(x%2 == 0) res[2] = new Vector2(x, y-1);
+            else res[2] = new Vector2(x-1, y+1);
+        }
+        else {
+            if(x%2 == 0) res[2] = new Vector2(x+1, y-1);
+            else if(y != 2*size-1) res[2] = new Vector2(x-1, y+1);
+        }
+
+        return res;
     }
 
     public interface PortOperation {

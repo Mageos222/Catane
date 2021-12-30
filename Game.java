@@ -26,29 +26,25 @@ public class Game {
         this.turn = 0;
     }
 
-    public void init(Player[] players, Canvas canvas, Controller controller) {
+    public void init(Player[] players, Canvas canvas) {
         this.players = players;
         this.canvas = canvas;
+    }
+
+    public void run(Controller controller) {
+        this.map = new Map(size, canvas);
+        canvas.drawCanvas(players.length, size);
 
         for(Player player : players)
             if(player.isBot()) {
                 Bot bot = (Bot)player;
                 bot.setController(controller);
+                bot.setMap(map);
             }
-    }
-
-    public void run() {
-        this.map = new Map(size, canvas);
-        canvas.drawCanvas(players.length, size);
     }
 
     public void update() {
         playDiceAnim();
-
-        if(players[turn].isBot()) {
-            Bot bot = (Bot)players[turn];
-            //bot.play(map.getMap(), turn <= 2*players.length);
-        }
     }
 
     private void playDiceAnim() {
@@ -71,6 +67,7 @@ public class Game {
     }
 
     public int changeTurn() {
+        System.out.println("Turn " + nbTurn);
         canvas.getProfils()[turn].transform().scale(0.8);
 
         turn = (turn+1)%3;
@@ -82,6 +79,12 @@ public class Game {
             for(Player player : players)
                 player.collect();
             updateText();
+
+            for(Player player : players)
+                if(player.isBot()) {
+                    Bot bot = (Bot)player;
+                    bot.stopInit();
+                }
         }
         if(nbTurn >= 2*players.length) {
             Random rnd = new Random();
@@ -94,6 +97,11 @@ public class Game {
             canvas.showDices();
                 
             System.out.println("Value of dice : " + dice1Value + "+" + dice2Value + " => " + (dice1Value+dice2Value));
+        }
+
+        if(players[turn].isBot()) {
+            Bot bot = (Bot)players[turn];
+            new Thread(bot).start();
         }
 
         return nbTurn < 2*players.length?-1:(dice1Value+dice2Value);
@@ -118,7 +126,6 @@ public class Game {
     public void addRoad(int x1, int y1, int x2, int y2, boolean pay) {
         if(pay) {
             players[turn].pay(roadCost);
-            players[turn].increment(1);
             updateText();
         }
         map.buildRoad(turn, y1, x1, y2, x2);
@@ -127,7 +134,7 @@ public class Game {
     public void addVillage(int x, int y, boolean pay) {
         if(pay) {
             players[turn].pay(villageCost);
-            players[turn].increment(1);
+            if(players[turn].increment(1)) canvas.showWinnerPannel(turn);
             updateText();
         }
 
@@ -143,6 +150,7 @@ public class Game {
     public void addTown(int x, int y) {
         players[turn].pay(townCost);
         map.getColony(x, y).upgrade();
+        if(players[turn].increment(1)) canvas.showWinnerPannel(turn);
         updateText();
     }
 

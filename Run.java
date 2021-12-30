@@ -36,8 +36,8 @@ public class Run {
         LoadingPage loading = new LoadingPage(value.getPosition().getX(), -value.getPosition().getY(), 
                                                 value.getSize().getX(), value.getSize().getY(), value);
         loading.start();
-        game.init(players, canvas, controller);
-        game.run();
+        game.init(players, canvas);
+        game.run(controller);
         ui.setLocation(loading.getX(), loading.getY());
         ui.setDimension(loading.getWidth(), loading.getHeight());
 

@@ -3,6 +3,7 @@ import java.util.LinkedList;
 public class Player {
 
     private final String name;
+    protected final int number;
     protected Ressource ressources;
 
     private int score;
@@ -10,8 +11,9 @@ public class Player {
     protected LinkedList<Colony> colonies;
     private LinkedList<Port> ports;
 
-    public Player(String name) {
-        this.name = name;
+    public Player(int number) {
+        this.number = number;
+        this.name = (isBot()?"Bot ":"Player ")+(number+1);
 
         ressources = new Ressource();
         this.colonies = new LinkedList<>();
@@ -59,11 +61,11 @@ public class Player {
         for(Colony col : colonies) 
             if(col.isBlocked()) return true;
         return false;
-     }
+    }
 
-    public void increment(int i) { 
+    public boolean increment(int i) { 
         score += i; 
-        if(win()) System.out.println(name + " win");
+        return win();
     } 
     public boolean win() { return score >= 10; }
 
