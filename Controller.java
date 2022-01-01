@@ -52,7 +52,6 @@ public class Controller {
         //if(!object.collider().isHover() || !addObject) return;
         if(!addObject) return false;
 
-        System.out.println(game.canBuildRoad(canBuildRoad > 0, x1, y1, x2, y2));
         if(!isTown && game.canBuildRoad(canBuildRoad > 0, x1, y1, x2, y2)) {
             game.addRoad(x1, y1, x2, y2, canBuildRoad==0);
             canBuildRoad--;
@@ -168,7 +167,9 @@ public class Controller {
     }
 
     public void addValueToDealProp(int val) {
-        if(!(dealPlayer[dealTurn] != null && !dealPlayer[dealTurn].possesse(dealVal[dealTurn])) && dealVal[dealTurn].sum() <= maxDeal) 
+        Ressource newRes = new Ressource(dealVal[dealTurn]);
+        newRes.add(val, 1);
+        if(dealPlayer[dealTurn] == null || dealPlayer[dealTurn].possesse(newRes) && newRes.sum() <= maxDeal)
             dealVal[dealTurn].add(val, 1);
         else return;
 
@@ -280,6 +281,7 @@ public class Controller {
         dealTurn = 0;
 
         canvas.emptyTemp();
+        canvas.showCardButton(false);
     }   
 
     public void selectPlayer(int player, GameObject obj) {
@@ -322,6 +324,41 @@ public class Controller {
             closeDeal();
             game.updateText();
         }
+    }
+
+    public void showCard() {
+        showDeal();
+        canvas.getRessourceChoice().renderer().setVisible(false);
+        canvas.getRessourceChoice().collider().setActiv(false);
+
+        canvas.showCardButton(true);
+        canvas.showCard(game.getCurrentPlayer().getCards());
+    }
+
+    public void buyCard() {
+        if(!game.canBuyCard()) return;
+
+        Random rnd = new Random();
+        int card = rnd.nextInt(3);
+
+        switch(card) {
+            case 0: game.getCurrentPlayer().addCard(new University(this)); break;
+            case 1: game.getCurrentPlayer().addCard(new Knight(this)); break;
+            default: game.getCurrentPlayer().addCard(new Road(this)); break;
+        }
+
+        canvas.emptyTemp();
+        showCard();
+    }
+
+    public void playCard(int i) {
+        game.getCurrentPlayer().playCard(i);
+        canvas.emptyTemp();
+        showCard();
+    }
+
+    public void addPoint() {
+        game.addPoint();
     }
 
     public void setRobber(boolean v) { this.robber = v; }

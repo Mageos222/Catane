@@ -1,4 +1,4 @@
-import java.util.LinkedList;
+import java.util.ArrayList;
 
 public class Player {
 
@@ -8,16 +8,18 @@ public class Player {
 
     private int score;
 
-    protected LinkedList<Colony> colonies;
-    private LinkedList<Port> ports;
+    protected ArrayList<Colony> colonies;
+    private ArrayList<Port> ports;
+    private ArrayList<Card> cards;
 
     public Player(int number) {
         this.number = number;
         this.name = (isBot()?"Bot ":"Player ")+(number+1);
 
         ressources = new Ressource();
-        this.colonies = new LinkedList<>();
-        this.ports = new LinkedList<>();
+        this.colonies = new ArrayList<>();
+        this.ports = new ArrayList<>();
+        this.cards = new ArrayList<>();
 
         this.score = 0;
     }
@@ -68,6 +70,13 @@ public class Player {
         return win();
     } 
     public boolean win() { return score >= 10; }
+ 
+    public void addCard(Card card) { this.cards.add(card); }
+    public ArrayList<Card> getCards() { return this.cards; }
+    public void playCard(int i) {
+        this.cards.get(i).use();
+        this.cards.remove(i);
+    }
 
     @Override
     public String toString() {

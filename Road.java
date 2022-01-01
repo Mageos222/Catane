@@ -7,4 +7,9 @@ public class Road extends Card{
     public void use(){
         this.controller.setCanBuildRoad(2);
     }
+
+    @Override
+    public int getType() {
+        return 2;
+    }
 } 

@@ -11,4 +11,5 @@ public abstract class Card {
     }
 
     public abstract void use();
+    public abstract int getType();
 }

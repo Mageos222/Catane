@@ -7,4 +7,9 @@ public class Knight extends Card{
     public void use(){
         this.controller.setRobber(true);
     }
+
+    @Override
+    public int getType() {
+        return 1;
+    }
 }

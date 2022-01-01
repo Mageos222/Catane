@@ -1,4 +1,5 @@
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
@@ -27,8 +28,10 @@ public class Canvas {
     private GameObject dice1Small;
     private GameObject dice2Small;
 
-    GameObject winnerBackground;
-    GameObject winnerText;
+    private GameObject winnerBackground;
+    private GameObject winnerText;
+
+    private GameObject buyCard;
 
     private List<GameObject> temp;
 
@@ -99,10 +102,22 @@ public class Canvas {
 
         ui.add(next);
 
+        GameObject card = new GameObject("Images/Card/cardButton.png", 100, 100);
+        card.transform().setPosition(-150, -450);
+        card.renderer().setZindex(2);
+        card.renderer().setAlign(Renderer.Align.BOTTOM);
+        card.addComponent(new BoxCollider(card));
+
+        card.collider().setOnHoverEnterAction(() -> controller.focus(card, 20));
+        card.collider().setOnHoverExitAction(() -> controller.unfocus(card, 20));
+        card.collider().setOnMouseClickedAction(controller::showCard);
+
+        ui.add(card);
+
         GameObject deal = new GameObject("Images/GamePage/deal.png", 75, 75);
-        deal.transform().setPosition(-150, -450);
+        deal.transform().setPosition(-900, 0);
         deal.renderer().setZindex(2);
-        deal.renderer().setAlign(Renderer.Align.BOTTOM);
+        deal.renderer().setAlign(Renderer.Align.CENTER_LEFT);
         deal.addComponent(new BoxCollider(deal));
 
         deal.collider().setOnHoverEnterAction(() -> controller.focus(deal, 20));
@@ -246,7 +261,7 @@ public class Canvas {
         costCard.collider().setOnMouseClickedAction(() -> { });
         ui.add(costCard);
 
-        winnerBackground = new GameObject("Images/Buttons/WoodBack.png", 1920, 1080);
+        winnerBackground = new GameObject("Images/Buttons/WoodBack.jpg", 1920, 1080);
         winnerBackground.renderer().setZindex(15);
         ui.add(winnerBackground);
 
@@ -257,6 +272,18 @@ public class Canvas {
         ui.add(winnerText);
 
         winnerBackground.renderer().setVisible(false);
+
+        buyCard = new GameObject("Images/Card/cardButton.png", 100, 100);
+        buyCard.transform().setPosition(300, -225);
+        buyCard.renderer().setZindex(11);
+        buyCard.renderer().setVisible(false);
+        buyCard.addComponent(new CircleCollider(buyCard));
+        buyCard.collider().setOnHoverEnterAction(() -> controller.focus(buyCard, 20));
+        buyCard.collider().setOnHoverExitAction(() -> controller.unfocus(buyCard, 20));
+        buyCard.collider().setActiv(false);
+        buyCard.collider().setOnMouseClickedAction(controller::buyCard);
+        ui.add(buyCard);
+
 
         ui.setBackground("Images/GamePage/Water.png");
         ui.addMouseListener((MouseEvent e) -> {
@@ -493,6 +520,30 @@ public class Canvas {
 
     public void setCursor(int cursor) {
         ui.setCursor(cursor);
+    }
+
+    public void showCardButton(boolean v) { 
+        this.buyCard.renderer().setVisible(v); 
+        this.buyCard.collider().setActiv(v);
+    }
+
+    public void showCard(ArrayList<Card> cards) {
+        String[] files = { "Images/Card/universityCard.png", "Images/Card/knightCard.png", "Images/Card/roadCard.png"};
+
+        for(int i = 0; i < cards.size(); i++) {
+            GameObject cardObject = new GameObject(files[cards.get(i).getType()], 100, 200);
+            cardObject.transform().setPosition(-100*(cards.size()-1)+i*200, -25);
+            cardObject.renderer().setZindex(11);
+
+            cardObject.addComponent(new BoxCollider(cardObject));
+            cardObject.collider().setOnHoverEnterAction(() -> controller.focus(cardObject, 20));
+            cardObject.collider().setOnHoverExitAction(() -> controller.unfocus(cardObject, 20));
+            int index = i;
+            cardObject.collider().setOnMouseClickedAction(() -> controller.playCard(index));
+
+            ui.add(cardObject);
+            temp.add(cardObject);
+        }
     }
 
     public GameObject[] getProfils() { return this.profils; }

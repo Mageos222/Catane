@@ -5,7 +5,12 @@ public class University extends Card{
     }
 
     public void use(){
-        //Ajouter 1 au joueur.
+        controller.addPoint();
+    }
+
+    @Override
+    public int getType() {
+        return 0;
     }
 }
 

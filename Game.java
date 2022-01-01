@@ -19,6 +19,7 @@ public class Game {
     private static final Ressource roadCost = new Ressource(0, 1, 0, 0, 1);
     private static final Ressource villageCost = new Ressource(1, 1, 1, 0, 1);
     private static final Ressource townCost = new Ressource(2, 0, 0, 3, 0);
+    private static final Ressource cardCost = new Ressource(1, 0, 1, 1, 0);
 
     public Game(int size) {
         this.size = size;
@@ -101,7 +102,7 @@ public class Game {
 
         if(players[turn].isBot()) {
             Bot bot = (Bot)players[turn];
-            new Thread(bot).start();
+            //new Thread(bot).start();
         }
 
         return nbTurn < 2*players.length?-1:(dice1Value+dice2Value);
@@ -150,8 +151,21 @@ public class Game {
     public void addTown(int x, int y) {
         players[turn].pay(townCost);
         map.getColony(x, y).upgrade();
-        if(players[turn].increment(1)) canvas.showWinnerPannel(turn);
+        addPoint();
         updateText();
+    }
+
+    public boolean canBuyCard() {
+        if(players[turn].possesse(cardCost)) {
+            players[turn].pay(cardCost);
+            updateText();
+            return true;
+        }
+        return false;
+    }
+
+    public void addPoint() {
+        if(players[turn].increment(1)) canvas.showWinnerPannel(turn);
     }
 
     public int getTurn() { return turn; }
