@@ -555,4 +555,6 @@ public class Canvas {
 
     public GameObject getRessourceChoice() { return this.ressourceChoice; }
     public GameObject getPlayerChoice() { return this.playerChoice; }
+
+    public List<GameObject> getTemp() { return this.temp; }
 }

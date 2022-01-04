@@ -1,5 +1,6 @@
 import GameEngine.*;
 import java.awt.image.BufferedImage;
+import java.util.List;
 import java.util.Random;
 
 public class Controller {
@@ -22,6 +23,7 @@ public class Controller {
     private int selectedPlayer = -1;
 
     private boolean steal;
+    private boolean botPlaying;
 
     public Controller(Game g, Canvas c) {
         this.game = g;
@@ -53,7 +55,7 @@ public class Controller {
         if(!addObject) return false;
 
         if(!isTown && game.canBuildRoad(canBuildRoad > 0, x1, y1, x2, y2)) {
-            game.addRoad(x1, y1, x2, y2, canBuildRoad==0);
+            game.addRoad(x1, y1, x2, y2, canBuildRoad<=0);
             canBuildRoad--;
 
             object.collider().setOnHoverEnterAction(() -> { });
@@ -107,7 +109,7 @@ public class Controller {
     } 
 
     public void snap(GameObject object) {
-        if(!addObject) return;
+        if(!addObject)  return;
         object.collider().setHover(true);
         object.renderer().setImage(game.getTurn());
 
@@ -115,6 +117,7 @@ public class Controller {
     }
 
     public void unsnap(GameObject object) {
+        if(botPlaying) return;
         object.renderer().setVisible(false);
         object.collider().setHover(false);
     }
@@ -154,8 +157,8 @@ public class Controller {
         canvas.moveRobber(x, -y);
     }
 
-    public void putRobber(Colony[] colonies) {
-        if(!robber) return;
+    public int[] putRobber(Colony[] colonies) {
+        if(!robber) return new int[0];
 
         game.setRobber();
 
@@ -163,7 +166,7 @@ public class Controller {
             colony.setBlocked(true);
 
         robber = false;
-        steal();
+        return steal();
     }
 
     public void addValueToDealProp(int val) {
@@ -189,14 +192,14 @@ public class Controller {
         canvas.getSignInfo().renderer().setImages("What do you want to exchange?");
     }
 
-    public void steal() {
+    public int[] steal() {
 
         int count = 0;
         for(int i = 0; i < game.getPlayer().length; i++) 
             if(i != game.getTurn() && game.getPlayer()[i].isBlocked() && game.getPlayer()[i].getRessources().sum() >= 0) 
                 count++;
 
-        if(count == 0) return;
+        if(count == 0) return new int[0];
 
         int[] list = new int[count];
         int counter = 0;
@@ -215,6 +218,8 @@ public class Controller {
         canvas.getRessourceChoice().collider().setActiv(false);
 
         canvas.showPlayersChoice(list);
+
+        return list;
     }
 
     private void showDeal() {
@@ -290,7 +295,7 @@ public class Controller {
     }
 
     public void unselectPlayer(int player, GameObject obj) {
-        if(selectedPlayer == player) {
+        if(selectedPlayer == player && !botPlaying) {
             unfocus(obj, 20);
             selectedPlayer = -1;
         }
@@ -362,6 +367,11 @@ public class Controller {
     }
 
     public void setRobber(boolean v) { this.robber = v; }
+    public boolean getRobber() { return this.robber; }
     public void setAddObject(boolean v) { this.addObject = v; }
     public void setCanBuildRoad(int i) {this.canBuildRoad = i; }
+
+    public void setBotPlaying(boolean val) { botPlaying = val; }
+
+    public List<GameObject> getTemp() { return canvas.getTemp(); }
 }

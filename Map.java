@@ -91,25 +91,14 @@ public class Map {
                 }
                 else value = 7;
 
-                Colony[] adja = new Colony[6];
-                int counter = 0;
+                Colony[] adja = getAdjaToTile(x, y);
 
                 Tiles tile = new Tiles(new Vector2(x, y), type, value); //ICI 
                 for(int i = 2*x; i <= 2*x+2; i++) {
                     for(int j = y; j <= y+1; j++){
-                        if(y < size - 1) {
-                            if(type != 5) map[j][i+(j-y)].add(tile);
-                            adja[counter] = map[j][i+(j-y)];
-                        }
-                        else if(y == size - 1) {
-                            if(type != 5) map[j][i].add(tile);
-                            adja[counter] = map[j][i];
-                        }
-                        else {
-                            if(type != 5) map[j][i+(j-y+1)%2].add(tile);
-                            adja[counter] = map[j][i+(j-y+1)%2];
-                        }
-                        counter++;
+                        if(y < size - 1 && type != 5) map[j][i+(j-y)].add(tile);
+                        else if(y == size - 1 && type != 5) map[j][i].add(tile);
+                        else if(type != 5) map[j][i+(j-y+1)%2].add(tile);
                     }
                 }    
 
@@ -131,7 +120,7 @@ public class Map {
 
                 Vector2[] adjacent = getAdjacent(x, y);
                 if(adjacent[0] != null) 
-                    map[y][x].setRoadR(canvas.addEmptyRoad(xPos+xOffset/2, yPos, x, y, x+1, y, roadType, size));
+                    map[y][x].setRoadR(canvas.addEmptyRoad(xPos+xOffset/2, yPos, x, y, adjacent[0].getX(), adjacent[0].getY(), roadType, size));
                 if(roadType == 1 && adjacent[2] != null) 
                     map[y][x].setRoadSup(canvas.addEmptyRoad(xPos, yPos+yOffset/2, x, y, adjacent[2].getX(), adjacent[2].getY(), 2, size));
                 else if(adjacent[2] != null) map[y][x].setRoadSup(map[adjacent[2].getY()][adjacent[2].getX()].getRoadSup());
@@ -230,6 +219,25 @@ public class Map {
         System.out.println("All port placed");
     }
 
+    public Colony[] getAdjaToTile(int x, int y) {
+        Colony[] adja = new Colony[6];
+        int counter = 0;
+
+        for(int i = 2*x; i <= 2*x+2; i++) {
+            for(int j = y; j <= y+1; j++){
+                if(y < size - 1) 
+                    adja[counter] = map[j][i+(j-y)];
+                else if(y == size - 1) 
+                    adja[counter] = map[j][i];
+                else 
+                    adja[counter] = map[j][i+(j-y+1)%2];
+                counter++;
+            }
+        }    
+
+        return adja;
+    }
+
     public Colony getColony(int x, int y) { return map[y][x]; }
     public Colony[][] getMap() { return this.map; }
     public int getSize() { return this.size; }
@@ -256,19 +264,18 @@ public class Map {
     }
 
     public void buildRoad(int j, int y1, int x1, int y2, int x2){
-        if (y1>y2 || y2>y1){
+        if (y1 != y2){
             map[y1][x1].setConnSup(j);
             map[y2][x2].setConnSup(j);
         }
 
-        if (x1<x2){
-            map[y1][x1].setConnL(j);
-            map[y2][x2].setConnR(j);  
-        }
-
-        if(x2>x1){
+        else if(x1 < x2) {
             map[y1][x1].setConnR(j);
             map[y2][x2].setConnL(j);
+        }
+        else {
+            map[y1][x1].setConnL(j);
+            map[y2][x2].setConnR(j);
         }
     }
 
@@ -329,6 +336,21 @@ public class Map {
         }
 
         return res;
+    }
+
+    public void printRoadConn() {
+        for(int y = map.length-1; y >= 0; y--) {
+            String res = "";
+            for(int i = 0; i < Math.max(0, Math.abs(size-1-y))-(y>=size?1:0); i++) res += "           ";
+            for(int x = 0; x < map[y].length; x++) {
+                String conL = map[y][x].getConnL()==-1?"-1":" "+map[y][x].getConnL();
+                String conS = map[y][x].getConnSup()==-1?"-1":" "+map[y][x].getConnSup();
+                String conR = map[y][x].getConnR()==-1?"-1":" "+map[y][x].getConnR();
+
+                res += "("+conL+";"+conS+";"+conR+") ";
+            }
+            System.out.println(res);
+        }
     }
 
     public interface PortOperation {

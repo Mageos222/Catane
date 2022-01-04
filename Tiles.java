@@ -14,15 +14,18 @@ public class Tiles {
 
     private int type;
     private int value;
+    private Vector2 position;
 
     public Tiles(Vector2 position, int type, int value)
     {
         this.type = type;
         this.value = value;
+        this.position = position;
     }
 
     public int getValue() { return this.value; }
     public int getType() { return this.type; }
+    public Vector2 getPosition() { return this.position; }
 
     public Image getImage() {
         File file = new File("Images/Jeton/Jeton"+value+".png");

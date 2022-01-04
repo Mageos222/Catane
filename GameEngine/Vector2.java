@@ -24,6 +24,14 @@ public class Vector2 {
     public int getX() { return this.x; }
     public int getY() { return this.y; }
 
+    public double dst(Vector2 target) { 
+        return Math.sqrt(Math.pow((double)x-target.x, 2)+Math.pow((double)y-target.y, 2));
+    }
+
+    public boolean equals(Vector2 target) {
+        return x == target.x && y == target.y;
+    }
+
     @Override
     public String toString() {
         return "("+x+";"+y+")";

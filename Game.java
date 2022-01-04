@@ -52,8 +52,6 @@ public class Game {
         canvas.playDiceAnim(diceAnim, dice1Value, dice2Value);
         if(diceAnim > 0) {
             if(diceAnim > 30) {
-                for(Player player : players)
-                    player.collect(dice1Value+dice2Value);
                 updateText();
                 diceAnim = -1;
             }
@@ -95,6 +93,9 @@ public class Game {
             dice1Value = rnd.nextInt(6)+1;
             dice2Value = rnd.nextInt(6)+1;
 
+            for(Player player : players)
+                player.collect(dice1Value+dice2Value);
+            
             canvas.showDices();
                 
             System.out.println("Value of dice : " + dice1Value + "+" + dice2Value + " => " + (dice1Value+dice2Value));
@@ -102,7 +103,7 @@ public class Game {
 
         if(players[turn].isBot()) {
             Bot bot = (Bot)players[turn];
-            //new Thread(bot).start();
+            new Thread(bot).start();
         }
 
         return nbTurn < 2*players.length?-1:(dice1Value+dice2Value);
@@ -130,6 +131,7 @@ public class Game {
             updateText();
         }
         map.buildRoad(turn, y1, x1, y2, x2);
+        //map.printRoadConn();
     }
 
     public void addVillage(int x, int y, boolean pay) {
