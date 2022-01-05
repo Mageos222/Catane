@@ -387,15 +387,15 @@ public class Map {
         int[] res = new int[3];
 
         Vector2[] adja = getAdjacent(pos.getX(), pos.getY());
-        if(!adja[0].equals(prec) && map[pos.getY()][pos.getX()].getConnR() == p) {
+        if(adja[0] != null && !adja[0].equals(prec) && map[pos.getY()][pos.getX()].getConnR() == p) {
             if(contain(closed, adja[0])) res[0] = 1;
             else res[0] = computeDirection(p, adja[0], closed, pos);
         }
-        if(!adja[1].equals(prec) && map[pos.getY()][pos.getX()].getConnL() == p && !contain(closed, adja[1])) {
+        if(adja[1] != null && !adja[1].equals(prec) && map[pos.getY()][pos.getX()].getConnL() == p && !contain(closed, adja[1])) {
             if(contain(closed, adja[1])) res[1] = 1;
             else res[1] = computeDirection(p, adja[1], closed, pos);
         }
-        if(!adja[2].equals(prec) && map[pos.getY()][pos.getX()].getConnSup() == p && !contain(closed, adja[2])) {
+        if(adja[2] != null && !adja[2].equals(prec) && map[pos.getY()][pos.getX()].getConnSup() == p && !contain(closed, adja[2])) {
             if(contain(closed, adja[2])) res[2] = 1;
             else res[2] = computeDirection(p, adja[2], closed, pos);
         }
