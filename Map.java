@@ -310,7 +310,7 @@ public class Map {
     public void resetBlocked() {
         for(Colony[] colonies : map)  
             for(Colony colony : colonies)
-                colony.setBlocked(false);
+                colony.setBlocked(-1);
     }
 
     public Vector2[] getAdjacent(int x, int y) {

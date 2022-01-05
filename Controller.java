@@ -45,7 +45,7 @@ public class Controller {
     }
 
     public void setNewObject() {
-        if(robber) return;
+        if(robber && !botPlaying) return;
         addObject = true;
         canvas.setCursor(12);
     }
@@ -80,9 +80,11 @@ public class Controller {
         }
         else if(isTown && !isVillage && game.canBuildTown(x1, y1)) {
             game.addTown(x1, y1);
-
+            
             object.collider().setOnHoverEnterAction(() -> focus(object, 10));
             object.collider().setOnHoverExitAction(() -> unfocus(object, 10));
+            object.collider().setOnMouseClickedAction(() -> { });
+            object.renderer().setImage(1);
         }
         else return false;
 
@@ -138,7 +140,7 @@ public class Controller {
         object.renderer().setImage(0);
     }
 
-    public void nextTurn() {
+    public void botNextTurn() {
         if(canBuildRoad > 0 || canBuildVillage || robber || game.isPlayingAnim()) return;
 
         int next = game.changeTurn();
@@ -151,19 +153,27 @@ public class Controller {
         addObject = false;
         canvas.setCursor(0);
     }
+    public void nextTurn() {
+        if(!botPlaying) botNextTurn();
+    }
 
     public void moveRobber(int x, int y) {
+        if(!robber || botPlaying) return;
+        canvas.moveRobber(x, -y);
+    }
+
+    public void botMoveRobber(int x, int y) {
         if(!robber) return;
         canvas.moveRobber(x, -y);
     }
 
-    public int[] putRobber(Colony[] colonies) {
+    public int[] putRobber(Colony[] colonies, int v) {
         if(!robber) return new int[0];
 
         game.setRobber();
 
         for(Colony colony : colonies)
-            colony.setBlocked(true);
+            colony.setBlocked(v);
 
         robber = false;
         return steal();
@@ -289,9 +299,12 @@ public class Controller {
         canvas.showCardButton(false);
     }   
 
-    public void selectPlayer(int player, GameObject obj) {
+    public void botSelectPlayer(int player, GameObject obj) {
         focus(obj, 20);
         selectedPlayer = player;
+    }
+    public void selectPlayer(int player, GameObject obj) {
+        if(!botPlaying) botSelectPlayer(player, obj);
     }
 
     public void unselectPlayer(int player, GameObject obj) {

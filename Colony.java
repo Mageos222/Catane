@@ -15,7 +15,7 @@ public class Colony {
     private Tiles[] tiles;
     private int level;
 
-    private boolean isBlocked;
+    private int isBlocked;
     private int port = -1;
 
     public Colony(GameObject object) {
@@ -27,6 +27,8 @@ public class Colony {
         this.connR = -1;
         this.connL = -1;
         this.connSup = -1;
+
+        this.isBlocked = -1;
 
         tiles = new Tiles[0];
         level = 1;
@@ -84,19 +86,23 @@ public class Colony {
 
     private Ressource collect(int value, boolean total) {
         Ressource res = new Ressource();
-        if(isBlocked) return res; 
-        
-        for(Tiles tile : tiles) 
-            if((tile.getValue() == value || total) && tile.getType() < 5)
-                res.add(tile.getType(), 25); //res.add(tile.getType(), level);
+        boolean hasBeenBlocked = false;
+
+        for(Tiles tile : tiles) {
+            if((tile.getValue() == value || total) && tile.getType() < 5 && (isBlocked != tile.getType() || hasBeenBlocked)) 
+                res.add(tile.getType(), level);
+            if(isBlocked == tile.getType()) hasBeenBlocked = true;
+        }
+
 
         return res;
     }
 
     public void upgrade() { this.level = 2; }
+    public boolean isTown() { return this.level == 2; }
 
-    public void setBlocked(boolean v) { this.isBlocked = v; }
-    public boolean isBlocked() { return this.isBlocked; }
+    public void setBlocked(int v) { this.isBlocked = v; }
+    public int isBlocked() { return this.isBlocked; }
 
     public Tiles[] getTiles() { return this.tiles; }
     public GameObject getObject() { return this.object; }

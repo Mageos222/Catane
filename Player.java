@@ -61,7 +61,7 @@ public class Player {
 
     public boolean isBlocked() { 
         for(Colony col : colonies) 
-            if(col.isBlocked()) return true;
+            if(col.isBlocked() != -1) return true;
         return false;
     }
 
@@ -77,6 +77,8 @@ public class Player {
         this.cards.get(i).use();
         this.cards.remove(i);
     }
+
+    public int getScore() { return this.score; }
 
     @Override
     public String toString() {

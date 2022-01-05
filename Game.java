@@ -21,6 +21,8 @@ public class Game {
     private static final Ressource townCost = new Ressource(2, 0, 0, 3, 0);
     private static final Ressource cardCost = new Ressource(1, 0, 1, 1, 0);
 
+    private boolean started = false;
+
     public Game(int size) {
         this.size = size;
 
@@ -45,6 +47,13 @@ public class Game {
     }
 
     public void update() {
+        if(!started) {
+            started = true;
+            if(players[turn].isBot()) {
+                Bot bot = (Bot)players[turn];
+                new Thread(bot).start();
+            }
+        }
         playDiceAnim();
     }
 
@@ -67,12 +76,12 @@ public class Game {
 
     public int changeTurn() {
         System.out.println("Turn " + nbTurn);
-        canvas.getProfils()[turn].transform().scale(0.8);
+        canvas.getProfils()[turn].transform().scale(-20, -20);
 
         turn = (turn+1)%3;
         nbTurn++;
         
-        canvas.getProfils()[turn].transform().scale(1.2);
+        canvas.getProfils()[turn].transform().scale(20, 20);
         
         if(nbTurn == 2*players.length) {
             for(Player player : players)
@@ -137,11 +146,11 @@ public class Game {
     public void addVillage(int x, int y, boolean pay) {
         if(pay) {
             players[turn].pay(villageCost);
-            if(players[turn].increment(1)) canvas.showWinnerPannel(turn);
             updateText();
         }
 
         map.buildVillage(turn, x, y);
+        addPoint();
 
         players[turn].addColony(map.getColony(x, y));
         if(map.getColony(x, y).getPort() > -1) 
@@ -167,7 +176,8 @@ public class Game {
     }
 
     public void addPoint() {
-        if(players[turn].increment(1)) canvas.showWinnerPannel(turn);
+        if(players[turn].increment(1)) canvas.showWinnerPannel(players[turn].getName());
+        canvas.updateScore(turn, players[turn].getScore());
     }
 
     public int getTurn() { return turn; }

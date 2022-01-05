@@ -35,6 +35,8 @@ public class Canvas {
 
     private List<GameObject> temp;
 
+    private GameObject[] scoreText;
+
     public Canvas(UI u) {
         this.ui = u;
 
@@ -46,6 +48,7 @@ public class Canvas {
 
     public void drawCanvas(int nbPlayer, int size) {
         this.profils = new GameObject[nbPlayer];
+        this.scoreText = new GameObject[nbPlayer];
         this.ressourceText = new GameObject[nbPlayer][];
 
         //#region Profils
@@ -55,11 +58,23 @@ public class Canvas {
         ui.add(this.profils[0]);
         addRessourceText(0, -675, 375, Renderer.Align.TOP_LEFT);
 
+        this.scoreText[0] = new GameObject(300, 50);
+        this.scoreText[0].transform().setPosition(-600, 450);
+        this.scoreText[0].addComponent(new TextRenderer(scoreText[0], "Score : 0"));
+        this.scoreText[0].renderer().setAlign(Renderer.Align.TOP_LEFT);
+        ui.add(this.scoreText[0]);
+
         this.profils[1] = new GameObject("Images/Profils/playerProfil2.png", 200, 200);
         this.profils[1].transform().setPosition(825, 375);
         this.profils[1].renderer().setAlign(Renderer.Align.TOP_RIGHT);
         ui.add(this.profils[1]);
         addRessourceText(1, 675, 375, Renderer.Align.TOP_RIGHT);
+
+        this.scoreText[1] = new GameObject(300, 50);
+        this.scoreText[1].transform().setPosition(525, 450);
+        this.scoreText[1].addComponent(new TextRenderer(scoreText[1], "Score : 0"));
+        this.scoreText[1].renderer().setAlign(Renderer.Align.TOP_RIGHT);
+        ui.add(this.scoreText[1]);
 
         this.profils[2] = new GameObject("Images/Profils/playerProfil3.png", 200, 200);
         this.profils[2].transform().setPosition(-825, -375);
@@ -67,12 +82,24 @@ public class Canvas {
         ui.add(this.profils[2]);
         addRessourceText(2, -675, -375, Renderer.Align.BOTTOM_LEFT);
 
+        this.scoreText[2] = new GameObject(300, 50);
+        this.scoreText[2].transform().setPosition(-600, -450);
+        this.scoreText[2].addComponent(new TextRenderer(scoreText[2], "Score : 0"));
+        this.scoreText[2].renderer().setAlign(Renderer.Align.BOTTOM_LEFT);
+        ui.add(this.scoreText[2]);
+
         if(nbPlayer == 4) {
             this.profils[3] = new GameObject("Images/Profils/playerProfil4.png", 200, 200);
             this.profils[3].transform().setPosition(825, -375);
             this.profils[3].renderer().setAlign(Renderer.Align.BOTTOM_RIGHT);
             ui.add(this.profils[3]);
             addRessourceText(3, 675, -375, Renderer.Align.BOTTOM_RIGHT);
+
+            this.scoreText[3] = new GameObject(300, 50);
+            this.scoreText[3].transform().setPosition(525, -450);
+            this.scoreText[3].addComponent(new TextRenderer(scoreText[3], "Score : 0"));
+            this.scoreText[3].renderer().setAlign(Renderer.Align.BOTTOM_RIGHT);
+            ui.add(this.scoreText[3]);
         }
         this.profils[0].transform().scale(1.2);
         //#endregion
@@ -262,13 +289,15 @@ public class Canvas {
         ui.add(costCard);
 
         winnerBackground = new GameObject("Images/Buttons/WoodBack.jpg", 1920, 1080);
-        winnerBackground.renderer().setZindex(15);
+        winnerBackground.renderer().setZindex(14);
+        winnerBackground.addComponent(new BoxCollider(winnerBackground));
         ui.add(winnerBackground);
 
-        winnerText = new GameObject(1000, 50);
+        winnerText = new GameObject(1000, 100);
         winnerText.addComponent(new TextRenderer(winnerText, "Nobody win"));
-        winnerText.renderer().setZindex(16);
+        winnerText.renderer().setZindex(15);
         winnerBackground.addChild(winnerText);
+        winnerBackground.collider().setActiv(false);
         ui.add(winnerText);
 
         winnerBackground.renderer().setVisible(false);
@@ -283,7 +312,6 @@ public class Canvas {
         buyCard.collider().setActiv(false);
         buyCard.collider().setOnMouseClickedAction(controller::buyCard);
         ui.add(buyCard);
-
 
         ui.setBackground("Images/GamePage/Water.png");
         ui.addMouseListener((MouseEvent e) -> {
@@ -382,13 +410,13 @@ public class Canvas {
         obj.addComponent(new CircleCollider(obj));
         obj.collider().setOnHoverEnterAction(() -> controller.moveRobber(pos.getX(), pos.getY()));
         obj.collider().setOnHoverExitAction(() -> { });
-        obj.collider().setOnMouseClickedAction(() -> controller.putRobber(adja));
+        obj.collider().setOnMouseClickedAction(() -> controller.putRobber(adja, type));
 
         ui.add(obj);
 
         if(type == 5) { 
             moveRobber(pos.getX(), -pos.getY());
-            controller.putRobber(adja);
+            controller.putRobber(adja, type);
         }
     }
 
@@ -513,9 +541,10 @@ public class Canvas {
         dice2.renderer().setVisible(true);
     }
 
-    public void showWinnerPannel(int winner) {
+    public void showWinnerPannel(String winner) {
         winnerBackground.renderer().setVisible(true);
-        winnerText.renderer().setImages("Player " + winner + " win");
+        winnerBackground.collider().setActiv(true);
+        winnerText.renderer().setImages(winner + " win");
     }
 
     public void setCursor(int cursor) {
@@ -545,6 +574,10 @@ public class Canvas {
             temp.add(cardObject);
         }
     }
+
+    public void updateScore(int p, int score) {
+        scoreText[p].renderer().setImages("Score : " + score);
+    } 
 
     public GameObject[] getProfils() { return this.profils; }
     public GameObject[][] getRessourceText() { return this.ressourceText; }

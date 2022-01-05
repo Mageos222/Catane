@@ -100,8 +100,6 @@ public class UI extends Canvas {
 
     public void nextFrame() {
         if(rescale) rescale();
-        checkCollision();
-
         nbFrame++;
 
         repaint();
@@ -183,6 +181,8 @@ public class UI extends Canvas {
 
     @Override
     public void update(Graphics g) {
+        checkCollision();
+
         if(isRescaled) rescaleObjects();
 
         BufferedImage frame = new BufferedImage(screenWidth,screenHeight, BufferedImage.TYPE_INT_ARGB);
