@@ -90,7 +90,7 @@ public class Colony {
 
         for(Tiles tile : tiles) {
             if((tile.getValue() == value || total) && tile.getType() < 5 && (isBlocked != tile.getType() || hasBeenBlocked)) 
-                res.add(tile.getType(), 25);//res.add(tile.getType(), level);
+                res.add(tile.getType(), level);
             if(isBlocked == tile.getType()) hasBeenBlocked = true;
         }
 

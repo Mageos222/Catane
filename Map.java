@@ -1,4 +1,3 @@
-import GameEngine.GameObject;
 import GameEngine.Vector2;
 
 import java.util.ArrayList;

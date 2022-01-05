@@ -11,8 +11,12 @@ public class Run {
         RessourceManager manager = new RessourceManager();
         manager.load("Images/LoadingPage", false);
 
-        MusicPlayer music = new MusicPlayer("Music/Music.wav");
-        //music.loop();
+        try {
+            MusicPlayer music = new MusicPlayer("Music/Music.wav");
+            music.loop();
+        } catch(Exception e) {
+            System.out.println("Error while playing music");
+        }
 
         LoadingPage load = new LoadingPage(0, 0, 720, 480, value);
         load.start();
