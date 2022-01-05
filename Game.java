@@ -1,5 +1,7 @@
 import java.util.Random;
 
+import GameEngine.Vector2;
+
 public class Game {
     
     private Player[] players;
@@ -78,6 +80,29 @@ public class Game {
         System.out.println("Turn " + nbTurn);
         canvas.getProfils()[turn].transform().scale(-20, -20);
 
+        if(nbTurn >= 2*players.length) {
+            int roadSize = map.computeLongestRoad(turn, players[turn].getFirstColony(), players[turn].getSecondColony());
+            System.out.println(players[turn].getName() + " : " + roadSize + " road");
+            
+            players[turn].setLongestRoad(roadSize);
+            int max = 0;
+            for(Player player : players) {
+                if(player.getLongestRoad() > max) 
+                    max = player.getLongestRoad();
+                player.setBonus(0);
+                canvas.setLongestRoadVisibility(player.number, false);
+            }
+            
+            for(Player player : players) {
+                if(player.getLongestRoad() == max) {
+                    player.setBonus(2);
+                    canvas.setLongestRoadVisibility(player.number, true);
+                }
+                canvas.updateScore(player.number, player.getScore());
+            }
+
+        }
+
         turn = (turn+1)%3;
         nbTurn++;
         
@@ -151,6 +176,9 @@ public class Game {
 
         map.buildVillage(turn, x, y);
         addPoint();
+
+        if(nbTurn < players.length) players[turn].setFirstColony(new Vector2(x, y));  
+        else if(nbTurn < 2*players.length) players[turn].setSecondColony(new Vector2(x, y)); 
 
         players[turn].addColony(map.getColony(x, y));
         if(map.getColony(x, y).getPort() > -1) 

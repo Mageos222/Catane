@@ -50,7 +50,7 @@ public class Run {
         fps.start();
         //fps.show();
 
-        while(ui.isActive() || (loading != null && loading.isActiv())) {
+        while(ui.isActive() || (loading != null && loading.isActiv()) || ui.getNbFrame() < 10) {
             try {
                 ui.nextFrame();
                 game.update();

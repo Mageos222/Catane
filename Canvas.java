@@ -1,6 +1,5 @@
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
@@ -33,15 +32,16 @@ public class Canvas {
 
     private GameObject buyCard;
 
-    private List<GameObject> temp;
+    private ArrayList<GameObject> temp;
 
     private GameObject[] scoreText;
+    private GameObject[] longestRoad;
 
     public Canvas(UI u) {
         this.ui = u;
 
         this.signTexts = new GameObject[5];
-        this.temp = new LinkedList<>();
+        this.temp = new ArrayList<>();
     }
 
     public void setController(Controller c) { this.controller = c; }
@@ -49,6 +49,7 @@ public class Canvas {
     public void drawCanvas(int nbPlayer, int size) {
         this.profils = new GameObject[nbPlayer];
         this.scoreText = new GameObject[nbPlayer];
+        this.longestRoad = new GameObject[nbPlayer];
         this.ressourceText = new GameObject[nbPlayer][];
 
         //#region Profils
@@ -64,6 +65,12 @@ public class Canvas {
         this.scoreText[0].renderer().setAlign(Renderer.Align.TOP_LEFT);
         ui.add(this.scoreText[0]);
 
+        this.longestRoad[0] = new GameObject("Images/GamePage/longestRoad.png", 50, 50);
+        this.longestRoad[0].transform().setPosition(-375, 400);
+        this.scoreText[0].renderer().setAlign(Renderer.Align.TOP_LEFT);
+        this.longestRoad[0].renderer().setVisible(false);
+        ui.add(this.longestRoad[0]);
+
         this.profils[1] = new GameObject("Images/Profils/playerProfil2.png", 200, 200);
         this.profils[1].transform().setPosition(825, 375);
         this.profils[1].renderer().setAlign(Renderer.Align.TOP_RIGHT);
@@ -75,6 +82,12 @@ public class Canvas {
         this.scoreText[1].addComponent(new TextRenderer(scoreText[1], "Score : 0"));
         this.scoreText[1].renderer().setAlign(Renderer.Align.TOP_RIGHT);
         ui.add(this.scoreText[1]);
+
+        this.longestRoad[1] = new GameObject("Images/GamePage/longestRoad.png", 50, 50);
+        this.longestRoad[1].transform().setPosition(375, 400);
+        this.scoreText[1].renderer().setAlign(Renderer.Align.TOP_RIGHT);
+        this.longestRoad[1].renderer().setVisible(false);
+        ui.add(this.longestRoad[1]);
 
         this.profils[2] = new GameObject("Images/Profils/playerProfil3.png", 200, 200);
         this.profils[2].transform().setPosition(-825, -375);
@@ -88,6 +101,12 @@ public class Canvas {
         this.scoreText[2].renderer().setAlign(Renderer.Align.BOTTOM_LEFT);
         ui.add(this.scoreText[2]);
 
+        this.longestRoad[2] = new GameObject("Images/GamePage/longestRoad.png", 50, 50);
+        this.longestRoad[2].transform().setPosition(-375, -400);
+        this.longestRoad[2].renderer().setVisible(false);
+        this.longestRoad[2].renderer().setAlign(Renderer.Align.BOTTOM_LEFT);
+        ui.add(this.longestRoad[2]);
+
         if(nbPlayer == 4) {
             this.profils[3] = new GameObject("Images/Profils/playerProfil4.png", 200, 200);
             this.profils[3].transform().setPosition(825, -375);
@@ -100,6 +119,12 @@ public class Canvas {
             this.scoreText[3].addComponent(new TextRenderer(scoreText[3], "Score : 0"));
             this.scoreText[3].renderer().setAlign(Renderer.Align.BOTTOM_RIGHT);
             ui.add(this.scoreText[3]);
+
+            this.longestRoad[3] = new GameObject("Images/GamePage/longestRoad.png", 50, 50);
+            this.longestRoad[3].transform().setPosition(375, -400);
+            this.longestRoad[3].renderer().setVisible(false);
+            this.longestRoad[3].renderer().setAlign(Renderer.Align.BOTTOM_RIGHT);
+            ui.add(this.longestRoad[3]);
         }
         this.profils[0].transform().scale(1.2);
         //#endregion
@@ -578,6 +603,8 @@ public class Canvas {
     public void updateScore(int p, int score) {
         scoreText[p].renderer().setImages("Score : " + score);
     } 
+
+    public void setLongestRoadVisibility(int p, boolean v) { this.longestRoad[p].renderer().setVisible(v); }
 
     public GameObject[] getProfils() { return this.profils; }
     public GameObject[][] getRessourceText() { return this.ressourceText; }

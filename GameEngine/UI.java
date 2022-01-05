@@ -54,7 +54,7 @@ public class UI extends Canvas {
             @Override
             public void windowClosing(WindowEvent we) {                
                 f.dispose();
-                //System.exit(0);
+                System.exit(0);
             }
         });
 
@@ -87,6 +87,7 @@ public class UI extends Canvas {
             public void windowGainedFocus(WindowEvent e) {
                 // pass
             }
+            
         });
     }
     

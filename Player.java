@@ -1,5 +1,7 @@
 import java.util.ArrayList;
 
+import GameEngine.Vector2;
+
 public class Player {
 
     private final String name;
@@ -11,6 +13,12 @@ public class Player {
     protected ArrayList<Colony> colonies;
     private ArrayList<Port> ports;
     private ArrayList<Card> cards;
+
+    private Vector2 firstColony;
+    private Vector2 secondColony;
+
+    private int longestRoad;
+    private int bonus;
 
     public Player(int number) {
         this.number = number;
@@ -78,7 +86,7 @@ public class Player {
         this.cards.remove(i);
     }
 
-    public int getScore() { return this.score; }
+    public int getScore() { return (this.score + this.bonus); }
 
     @Override
     public String toString() {
@@ -88,4 +96,13 @@ public class Player {
     public String getName() { return this.name; }
 
     public boolean isBot() { return false; }
+
+    public void setFirstColony(Vector2 v) { this.firstColony = v; }
+    public void setSecondColony(Vector2 v) { this.secondColony = v; }
+    public Vector2 getFirstColony() { return this.firstColony; }
+    public Vector2 getSecondColony() { return this.secondColony; }
+
+    public void setLongestRoad(int size) { this.longestRoad = size; }
+    public int getLongestRoad() { return this.longestRoad; }
+    public void setBonus(int b) { this.bonus = b; }
 }   

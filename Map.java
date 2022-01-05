@@ -353,6 +353,67 @@ public class Map {
         }
     }
 
+    public int computeLongestRoad(int player, Vector2 pos1, Vector2 pos2) {
+        ArrayList<Vector2> closed = new ArrayList<>();
+        int res1 = computeFirstPath(player, pos1, closed);
+
+        closed.clear();
+        int res2 = computeFirstPath(player, pos2, closed);
+
+        return Math.max(res1, res2);
+    }
+
+    private int computeFirstPath(int p, Vector2 pos, ArrayList<Vector2> closed) {
+        int res = 0;
+
+        Vector2[] adja = getAdjacent(pos.getX(), pos.getY());
+        if(map[pos.getY()][pos.getX()].getConnR() == p) {
+            if(contain(closed, adja[0])) res += 1;
+            else res += computeDirection(p, adja[0], closed, pos);
+        }
+        if(map[pos.getY()][pos.getX()].getConnL() == p && !contain(closed, adja[1])) {
+            if(contain(closed, adja[1])) res += 1;
+            else res += computeDirection(p, adja[1], closed, pos);
+        }
+        if(map[pos.getY()][pos.getX()].getConnSup() == p && !contain(closed, adja[2])) {
+            if(contain(closed, adja[2])) res += 1;
+            else res += computeDirection(p, adja[2], closed, pos);
+        }
+
+        return res;
+    }
+
+    private int computeDirection(int p, Vector2 pos, ArrayList<Vector2> closed, Vector2 prec) {
+        closed.add(pos);
+        int[] res = new int[3];
+
+        Vector2[] adja = getAdjacent(pos.getX(), pos.getY());
+        if(!adja[0].equals(prec) && map[pos.getY()][pos.getX()].getConnR() == p) {
+            if(contain(closed, adja[0])) res[0] = 1;
+            else res[0] = computeDirection(p, adja[0], closed, pos);
+        }
+        if(!adja[1].equals(prec) && map[pos.getY()][pos.getX()].getConnL() == p && !contain(closed, adja[1])) {
+            if(contain(closed, adja[1])) res[1] = 1;
+            else res[1] = computeDirection(p, adja[1], closed, pos);
+        }
+        if(!adja[2].equals(prec) && map[pos.getY()][pos.getX()].getConnSup() == p && !contain(closed, adja[2])) {
+            if(contain(closed, adja[2])) res[2] = 1;
+            else res[2] = computeDirection(p, adja[2], closed, pos);
+        }
+
+        int max = 0;
+        for(int i = 0; i < 3; i++) if(res[i] > max) max = res[i];
+
+        return 1+max;
+    }
+
+    private boolean contain(ArrayList<Vector2> list, Vector2 v) {
+        for(Vector2 vector : list) 
+            if(vector.equals(v))
+                return true;
+        return false;
+    }
+
     public interface PortOperation {
         public int x(int i, int size);
         public int y(int i, int size);
