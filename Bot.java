@@ -18,6 +18,7 @@ public class Bot extends Player implements Runnable {
     private static final Ressource townCost = new Ressource(2, 0, 0, 3, 0);
 
     private ArrayList<Vector2> path;
+    private int maxPath = 4;
 
     public Bot(int number) {
         super(number);
@@ -29,7 +30,7 @@ public class Bot extends Player implements Runnable {
     @Override
     public void run() {
         controller.setBotPlaying(true);
-        System.out.println("Bot "+ number + " : My turn");
+        System.out.println(getName() + " : My turn");
         if(init) playInit();
         else play();
     }
@@ -43,58 +44,54 @@ public class Bot extends Player implements Runnable {
         }
 
         Colony[][] map = m.getMap();
+        Ressource cost = new Ressource(5, 5, 5, 5, 5);
         Boolean haveAction = true;
 
         if(controller.getRobber()) moveRobber();
 
-        Ressource cost = new Ressource(5, 5, 5, 5, 5);
-        Classification[] tab = makePointList(cost);
         Classification target = null;
 
-        for(Classification col : tab) {
-            if(m.canBuildFirstVillage(number, col.getX(), col.getY()) && map[col.getY()][col.getX()].getVillage() == -1) {
-                System.out.println("Targeted point : (" + col.getX() + ";" + col.getY()+")");
-                target = col;
-
-                if(!path.isEmpty() || calculatePath(target))
-                    break;
-            }
+        do {
+            target = findTarget(cost);
+            if(target == null) maxPath++;
         }
+        while(target == null && maxPath < 20);
 
-        boolean canUpgradeVillage = true;
+        if(target == null)  System.out.println(getName() + " : I don't know what to do...");
+        else {
+            boolean canUpgradeVillage = true;
 
-        while(haveAction) {
-            if(possesse(townCost) && canUpgradeVillage) canUpgradeVillage = upgradeVillage(cost); 
-            else if(possesse(villageCost) && m.canBuildVillage(number, target.x, target.y) && map[target.y][target.x].getVillage()==-1) 
-                buildVillage(target);
-            else if(possesse(roadCost) && path.size() >= 2) makePath(path);
-            else haveAction = false;
+            while(haveAction) {
+                if(possesse(townCost) && canUpgradeVillage) canUpgradeVillage = upgradeVillage(cost); 
+                else if(possesse(villageCost) && m.canBuildVillage(number, target.x, target.y) && map[target.y][target.x].getVillage()==-1) 
+                    buildVillage(target);
+                else if(possesse(roadCost) && path.size() >= 2) makePath(path);
+                else haveAction = false;
 
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
             }
         }
 
         path.clear();
         controller.setBotPlaying(false);
+        System.out.println(getName() + " : End of my turn");
         controller.botNextTurn();
-        System.out.println("Bot "+ number + " : End of my turn");
     }
 
     private void playInit() {
         Colony[][] map = m.getMap();
 
-        controller.setAddObject(true);
-
         Ressource cost = new Ressource(2, 3, 2, 1, 3);
         Classification[] tab = makePointList(cost);
         for(Classification col : tab) {
-            System.out.println("Bot "+ number + " : Searching");
-            controller.snap(map[col.getY()][col.getX()].getObject());
+            //System.out.println(getName() + " : Searching");
+            controller.botSnap(map[col.getY()][col.getX()].getObject());
             if(controller.build(map[col.getY()][col.getX()].getObject(), col.getX(), col.getY(), 0, 0, true, true)) {
-                System.out.println("Bot "+ number + " : Building village at position ("+col.getX()+";"+col.getY()+"), score : " + col.getValue());
+                System.out.println(getName() + " : Building village at position ("+col.getX()+";"+col.getY()+"), score : " + col.getValue());
 
                 try {
                     Thread.sleep(1000);
@@ -102,9 +99,8 @@ public class Bot extends Player implements Runnable {
                     Thread.currentThread().interrupt();
                 }
 
-                controller.setAddObject(true);
                 while(!buildRoad(col))
-                    System.out.println("Bot "+ number + " : Searching road");
+                    System.out.println(getName() + " : Searching road");
 
                 break;
             }
@@ -125,13 +121,13 @@ public class Bot extends Player implements Runnable {
         }
         
         controller.setBotPlaying(false);
+        System.out.println(getName() + " : End of my turn");
         controller.botNextTurn();
-        System.out.println("Bot "+ number + " : End of my turn");
     }
 
     private boolean calculatePath(Classification target) {
         Colony[][] map = m.getMap();
-        System.out.println("Calculating path...");
+        System.out.println(getName() + " : Calculating path...");
         Vector2 starting = getClosest(new Vector2(target.getX(), target.getY()), 1);
         path = AStar(new Vector2(target.getX(), target.getY()), starting);
 
@@ -151,25 +147,39 @@ public class Bot extends Player implements Runnable {
                 remove = true;
         }
 
-        /*if(path.size() > 6) {
+        if(path.size() > maxPath) {
             path.clear();
             return false;
-        }*/
+        }
 
         System.out.println("Path : ");
-        for(Vector2 v : path) System.out.println(v.toString());
+        //for(Vector2 v : path) System.out.println(v.toString());
 
         return true;
+    }
+
+    private Classification findTarget(Ressource cost) {
+        Colony[][] map = m.getMap();
+
+        Classification[] tab = makePointList(cost);
+
+        for(Classification col : tab) {
+            if(m.canBuildFirstVillage(number, col.getX(), col.getY()) && map[col.getY()][col.getX()].getVillage() == -1 && (!path.isEmpty() || calculatePath(col))) {
+                System.out.println(getName() + " : Targeted point : (" + col.getX() + ";" + col.getY()+")");
+                return col;
+            }
+        }
+
+        return null;
     }
 
     private void buildVillage(Classification col) {
         Colony[][] map = m.getMap();
 
-        controller.setAddObject(true);
-        controller.snap(map[col.getY()][col.getX()].getObject());
+        controller.botSnap(map[col.getY()][col.getX()].getObject());
         controller.build(map[col.getY()][col.getX()].getObject(), col.getX(), col.getY(), 0, 0, true, true);
 
-        System.out.println("Bot "+ number + " : Building village at position ("+col.getX()+";"+col.getY()+"), score : " + col.getValue());
+        System.out.println(getName() + " : Building village at position ("+col.getX()+";"+col.getY()+"), score : " + col.getValue());
     }
 
     private boolean upgradeVillage(Ressource cost) {
@@ -177,10 +187,9 @@ public class Bot extends Player implements Runnable {
         Classification[] list = makePointList(cost, true);
         if(list.length > 0) {
             Classification town = list[0];
-            controller.setAddObject(true);
-            controller.snap(map[town.y][town.x].getObject());
+            controller.botSnap(map[town.y][town.x].getObject());
             controller.build(map[town.y][town.x].getObject(), town.x, town.y, 0, 0, false, true);
-            System.out.println("Vilage (" + town.x + ";" + town.y + ") upgraded");
+            System.out.println(getName() + " : Vilage (" + town.x + ";" + town.y + ") upgraded");
         }
         return list.length > 1;
     }
@@ -189,19 +198,19 @@ public class Bot extends Player implements Runnable {
         Colony[][] map = m.getMap();
         switch(rnd.nextInt(3)) {
             case 0: if(map[col.getY()][col.getX()].getRoadR() != null && map[col.getY()][col.getX()].getConnR() == -1) {
-                controller.snap(map[col.getY()][col.getX()].getRoadR());
+                controller.botSnap(map[col.getY()][col.getX()].getRoadR());
                 controller.build(map[col.getY()][col.getX()].getRoadR(), col.getX(), col.getY(), col.getX()+1, col.getY(), false, false);    
                 return true;               
             }
             break;
             case 1 : if(map[col.getY()][col.getX()].getRoadL() != null && map[col.getY()][col.getX()].getConnL() == -1) {
-                controller.snap(map[col.getY()][col.getX()].getRoadL());
+                controller.botSnap(map[col.getY()][col.getX()].getRoadL());
                 controller.build(map[col.getY()][col.getX()].getRoadL(), col.getX(), col.getY(), col.getX()-1, col.getY(), false, false);
                 return true;
             } 
             break;
             default: if(map[col.getY()][col.getX()].getRoadSup() != null && map[col.getY()][col.getX()].getConnSup() == -1) {
-                controller.snap(map[col.getY()][col.getX()].getRoadSup());
+                controller.botSnap(map[col.getY()][col.getX()].getRoadSup());
                 Vector2 pos = m.getAdjacent(col.getX(), col.getY())[2];
                 controller.build(map[col.getY()][col.getX()].getRoadSup(), col.getX(), col.getY(), pos.getX(), pos.getY(), false, false);
                 return true;
@@ -226,7 +235,7 @@ public class Bot extends Player implements Runnable {
 
         cost.remove(ressource);
 
-        System.out.println("Bot "+ number + " : Ressources value : " + cost.toString());
+        //System.out.println(getName() + " : Ressources value : " + cost.toString());
         
         for(int y = 0; y < map.length; y++) 
             for(int x = 0; x < map[y].length; x++) 
@@ -256,20 +265,6 @@ public class Bot extends Player implements Runnable {
 
         Colony[][] map = m.getMap();
 
-        /*for(Vector2 col : classi) {
-            if(res == null) res = col;
-
-            int posX = (col.getX()+Math.min(col.getY(), m.getSize()-col.getY()))-(pos.getX()+Math.min(pos.getY(), m.getSize()-pos.getY()));
-            int posY = col.getY()-pos.getY();
-            
-            double newDst = Math.sqrt(Math.pow(posX, 2)+Math.pow(posY, 2));
-
-            if(newDst < dst) {
-                res = col;
-                dst = newDst;
-            }
-        }*/
-
         for(int y = 0; y < map.length; y++) {
             for(int x = 0; x < map[y].length; x++) {
                 if(map[y][x].haveConn(number)) {
@@ -282,17 +277,6 @@ public class Bot extends Player implements Runnable {
                         res = new Vector2(x, y);
                         dst = newDst;
                     }
-
-                    /*for(int i = 0; i < size; i++) {
-                        if(res[i] == null || newDst < dst[i]){
-                            for(int j = size-1; j > i; j--)
-                                res[j] = res[j-1];
-                            res[i] = new Vector2(x, y);
-                            dst[i] = newDst;
-                            
-                            break;                      
-                        }
-                    }*/
                 }
             }
         }
@@ -316,9 +300,8 @@ public class Bot extends Player implements Runnable {
             obj = map[start.getY()][start.getX()].getRoadR();
         
         if(m.canBuildRoad(number, start.getY(), start.getX(), target.getY(), target.getX())) {
-            System.out.println("Building from " + start.toString() + " to " + target.toString());
-            controller.setAddObject(true);
-            controller.snap(obj);
+            System.out.println(getName() + " : Building road from " + start.toString() + " to " + target.toString());
+            controller.botSnap(obj);
             controller.build(obj, start.getX(), start.getY(), target.getX(), target.getY(), false, false);
         }
 
@@ -342,24 +325,22 @@ public class Bot extends Player implements Runnable {
             if(sup == null || sup.getY() > startingPoint.getY() && vertical < 0 || sup.getY() < startingPoint.getY() && 
                     vertical > 0 || col.getConnSup() != -1) h = true;
             else if(m.canBuildRoad(number, startingPoint.getY(), startingPoint.getX(), sup.getY(), sup.getX())) {
-                System.out.println("Building from " + startingPoint.toString() + " to " + target.toString() + " vertical");
-                controller.setAddObject(true);
-                controller.snap(col.getRoadSup());
+                System.out.println(getName() + " : Building road from " + startingPoint.toString() + " to " + target.toString());
+                controller.botSnap(col.getRoadSup());
                 controller.build(col.getRoadSup(), startingPoint.getX(), startingPoint.getY(), 
                                     sup.getX(), sup.getY(), false, false);
                 return true;
             }
         }
         if(Math.abs(horizontal) >= Math.abs(vertical) || h) {
-            System.out.println("Building from " + startingPoint.toString() + " to " + target.toString() + (horizontal>0?" Right":" Left"));
+            System.out.println(getName() + " : Building road from " + startingPoint.toString() + " to " + target.toString());
 
             GameObject road = horizontal>0?col.getRoadR():col.getRoadL();
 
             int add = horizontal>0?1:-1;
             if((horizontal>0?col.getConnR():col.getConnL()) != -1) return false;
             if(m.canBuildRoad(number, startingPoint.getY(), startingPoint.getX(), startingPoint.getY(), startingPoint.getX()+add)) {
-                controller.setAddObject(true);
-                controller.snap(road);
+                controller.botSnap(road);
                 controller.build(road, startingPoint.getX(), startingPoint.getY(), startingPoint.getX()+add, startingPoint.getY(), false, false);
                 return true;
             }
@@ -452,6 +433,12 @@ public class Bot extends Player implements Runnable {
                 if(node.fCost < current.fCost) current = node;
             open.remove(current);
             close.add(current);
+
+            if(map[current.position.getY()][current.position.getX()].getVillage() != number && 
+                    map[current.position.getY()][current.position.getX()].getVillage() >= 0) {
+                i++;
+                continue;
+            }
 
             if(current.position.equals(target)) {
                 ArrayList<Vector2> res = new ArrayList<>();

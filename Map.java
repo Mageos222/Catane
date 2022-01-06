@@ -24,7 +24,7 @@ public class Map {
             int i = (y < size)?y:2*size-y-1;
             map[y] = new Colony[2*(size+i)+1];
             for(int x = 0; x < 2*(size+i)+1; x++) {
-                map[y][x] = new Colony(canvas.addEmptyVillage((x-size-i)*xOffset, (int)((y-size+0.5f)*yOffset+yShift), x, y, size));
+                map[y][x] = new Colony(canvas.addEmptyVillage((x-size-i)*xOffset, (int)((y-size+0.5f)*yOffset+yShift), x, y, size), x, y);
 
                 yShift = -yShift;
 
@@ -256,10 +256,8 @@ public class Map {
     }
 
     public boolean canBuildRoad(int j, int y1, int x1, int y2, int x2){
-        return (map[y1][x1].getVillage() == j || map[y2][x2].getVillage() == j) ||
-            (map[y1][x1].haveConn(j) || map[y2][x2].haveConn(j)) &&
-            (map[y1][x1].getVillage() < 0 || map[y1][x1].getVillage() == j || 
-            map[y2][x2].getVillage() < 0 || map[y2][x2].getVillage() == j);
+        return (map[y1][x1].getVillage() == j || map[y2][x2].getVillage() == j ||
+                map[y1][x1].haveConn(j) || map[y2][x2].haveConn(j));
     }
 
     public void buildRoad(int j, int y1, int x1, int y2, int x2){
@@ -267,15 +265,13 @@ public class Map {
             map[y1][x1].setConnSup(j);
             map[y2][x2].setConnSup(j);
         }
-
-        else if(x1 < x2) {
+        else {
             map[y1][x1].setConnR(j);
             map[y2][x2].setConnL(j);
         }
-        else {
-            map[y1][x1].setConnL(j);
-            map[y2][x2].setConnR(j);
-        }
+
+        map[y1][x1].cutConnection();
+        map[y2][x2].cutConnection();
     }
 
     public boolean canBuildFirstVillage(int j, int x, int y){
@@ -289,6 +285,7 @@ public class Map {
 
     public void buildVillage(int j, int x, int y){
         map[y][x].setVillage(j);
+        map[y][x].cutConnection();
         if (x>0) map[y][x-1].setVillage(-2);
         if (x<map[y].length-1) map[y][x+1].setVillage(-2);  
 
@@ -352,32 +349,30 @@ public class Map {
         }
     }
 
-    public int computeLongestRoad(int player, Vector2 pos1, Vector2 pos2) {
-        ArrayList<Vector2> closed = new ArrayList<>();
-        int res1 = computeFirstPath(player, pos1, closed);
+    public int computeLongestRoad(int player, ArrayList<Colony> positions) {
+        int res = 0;
+        
+        for(int i = 0; i < positions.size(); i++) {
+            ArrayList<Vector2> closed = new ArrayList<>();
+            int val = computeFirstPath(player, positions.get(i).getPosition(), closed);
+            if(val > res) res = val;
+        }
 
-        closed.clear();
-        int res2 = computeFirstPath(player, pos2, closed);
-
-        return Math.max(res1, res2);
+        return res;
     }
 
     private int computeFirstPath(int p, Vector2 pos, ArrayList<Vector2> closed) {
         int res = 0;
+        System.out.println(pos.toString());
 
+        closed.add(pos);
         Vector2[] adja = getAdjacent(pos.getX(), pos.getY());
-        if(map[pos.getY()][pos.getX()].getConnR() == p) {
-            if(contain(closed, adja[0])) res += 1;
-            else res += computeDirection(p, adja[0], closed, pos);
-        }
-        if(map[pos.getY()][pos.getX()].getConnL() == p && !contain(closed, adja[1])) {
-            if(contain(closed, adja[1])) res += 1;
-            else res += computeDirection(p, adja[1], closed, pos);
-        }
-        if(map[pos.getY()][pos.getX()].getConnSup() == p && !contain(closed, adja[2])) {
-            if(contain(closed, adja[2])) res += 1;
-            else res += computeDirection(p, adja[2], closed, pos);
-        }
+        if(map[pos.getY()][pos.getX()].getConnR() == p) 
+            res += computeDirection(p, adja[0], closed, pos);
+        if(map[pos.getY()][pos.getX()].getConnL() == p && !contain(closed, adja[1])) 
+            res += computeDirection(p, adja[1], closed, pos);
+        if(map[pos.getY()][pos.getX()].getConnSup() == p && !contain(closed, adja[2])) 
+            res += computeDirection(p, adja[2], closed, pos);
 
         return res;
     }
@@ -401,8 +396,9 @@ public class Map {
         }
 
         int max = 0;
-        for(int i = 0; i < 3; i++) if(res[i] > max) max = res[i];
-
+        for(int i = 0; i < 3; i++) 
+            if(res[i] > max) max = res[i];
+        
         return 1+max;
     }
 

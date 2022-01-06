@@ -1,4 +1,7 @@
+import java.util.Vector;
+
 import GameEngine.GameObject;
+import GameEngine.Vector2;
 
 public class Colony {
 
@@ -11,6 +14,7 @@ public class Colony {
     private int connSup;
     private GameObject roadSup;
     private int village;
+    private Vector2 position;
 
     private Tiles[] tiles;
     private int level;
@@ -18,7 +22,7 @@ public class Colony {
     private int isBlocked;
     private int port = -1;
 
-    public Colony(GameObject object) {
+    public Colony(GameObject object, int x, int y) {
         this.object = object;
 
         this.tiles = new Tiles[0];
@@ -29,6 +33,7 @@ public class Colony {
         this.connSup = -1;
 
         this.isBlocked = -1;
+        this.position = new Vector2(x, y);
 
         tiles = new Tiles[0];
         level = 1;
@@ -98,6 +103,13 @@ public class Colony {
         return res;
     }
 
+    public void cutConnection() {
+        if(village < 0) return;
+        if(connR != village) connR = -1;
+        if(connL != village) connL = -1;
+        if(connSup != village) connSup = -1;
+    }
+
     public void upgrade() { this.level = 2; }
     public boolean isTown() { return this.level == 2; }
 
@@ -113,6 +125,7 @@ public class Colony {
     public GameObject getRoadR() { return this.roadR; }
     public GameObject getRoadL() { return this.roadL; }
     public GameObject getRoadSup() { return this.roadSup; }
+    public Vector2 getPosition() { return this.position; }
 
     @Override
     public String toString() {

@@ -52,7 +52,7 @@ public class Controller {
 
     public boolean build(GameObject object, int x1, int y1, int x2, int y2, boolean isVillage, boolean isTown) {
         //if(!object.collider().isHover() || !addObject) return;
-        if(!addObject) return false;
+        if(!addObject && !botPlaying) return false;
 
         if(!isTown && game.canBuildRoad(canBuildRoad > 0, x1, y1, x2, y2)) {
             game.addRoad(x1, y1, x2, y2, canBuildRoad<=0);
@@ -61,7 +61,7 @@ public class Controller {
             object.collider().setOnHoverEnterAction(() -> { });
             object.collider().setOnHoverExitAction(() -> { });
 
-            System.out.println("Road builded");
+            //System.out.println("Road builded");
         }
         else if(isVillage && game.canBuildVillage(canBuildVillage, x1, y1)) {
             game.addVillage(x1, y1, !canBuildVillage);
@@ -83,12 +83,12 @@ public class Controller {
             
             object.collider().setOnHoverEnterAction(() -> focus(object, 10));
             object.collider().setOnHoverExitAction(() -> unfocus(object, 10));
-            object.collider().setOnMouseClickedAction(() -> { });
             object.renderer().setImage(1);
         }
         else return false;
 
         object.collider().setHover(false);
+        object.renderer().setVisible(true);
         addObject = false;
 
         if(!isVillage) object.collider().setOnMouseClickedAction(() -> { });
@@ -99,23 +99,30 @@ public class Controller {
     }
 
     public void focus(GameObject object, int size) {
-        object.transform().scale(size, size);
-        object.collider().setHover(true);
-        object.renderer().setZindex(object.renderer().getZindex()+5);
+        if(!object.collider().isHover()) {
+            object.transform().scale(size, size);
+            object.collider().setHover(true);
+            object.renderer().setZindex(object.renderer().getZindex()+5);
+        }
     }
 
     public void unfocus(GameObject object, int size) {
-        object.transform().scale(-size, -size);
-        object.collider().setHover(false);
-        object.renderer().setZindex(object.renderer().getZindex()-5);
+        if(object.collider().isHover()) {
+            object.transform().scale(-size, -size);
+            object.collider().setHover(false);
+            object.renderer().setZindex(object.renderer().getZindex()-5);
+        }
     } 
 
-    public void snap(GameObject object) {
-        if(!addObject)  return;
+    public void botSnap(GameObject object) {
         object.collider().setHover(true);
         object.renderer().setImage(game.getTurn());
 
         object.renderer().setVisible(true);
+    }
+
+    public void snap(GameObject object) {
+        if(addObject && !botPlaying)  botSnap(object);
     }
 
     public void unsnap(GameObject object) {

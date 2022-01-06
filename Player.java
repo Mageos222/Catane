@@ -14,9 +14,6 @@ public class Player {
     private ArrayList<Port> ports;
     private ArrayList<Card> cards;
 
-    private Vector2 firstColony;
-    private Vector2 secondColony;
-
     private int longestRoad;
     private int bonus;
 
@@ -77,7 +74,7 @@ public class Player {
         score += i; 
         return win();
     } 
-    public boolean win() { return score >= 10; }
+    public boolean win() { return (score+bonus) >= 10; }
  
     public void addCard(Card card) { this.cards.add(card); }
     public ArrayList<Card> getCards() { return this.cards; }
@@ -97,10 +94,7 @@ public class Player {
 
     public boolean isBot() { return false; }
 
-    public void setFirstColony(Vector2 v) { this.firstColony = v; }
-    public void setSecondColony(Vector2 v) { this.secondColony = v; }
-    public Vector2 getFirstColony() { return this.firstColony; }
-    public Vector2 getSecondColony() { return this.secondColony; }
+    public ArrayList<Colony> getColonies() { return this.colonies; }
 
     public void setLongestRoad(int size) { this.longestRoad = size; }
     public int getLongestRoad() { return this.longestRoad; }

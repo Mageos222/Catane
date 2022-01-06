@@ -24,6 +24,7 @@ public class Game {
     private static final Ressource cardCost = new Ressource(1, 0, 1, 1, 0);
 
     private boolean started = false;
+    private boolean stopped = false;
 
     public Game(int size) {
         this.size = size;
@@ -77,11 +78,12 @@ public class Game {
     }
 
     public int changeTurn() {
-        System.out.println("Turn " + nbTurn);
+        if(stopped) return 0;
+
         canvas.getProfils()[turn].transform().scale(-20, -20);
 
         if(nbTurn >= 2*players.length) {
-            int roadSize = map.computeLongestRoad(turn, players[turn].getFirstColony(), players[turn].getSecondColony());
+            int roadSize = map.computeLongestRoad(turn, players[turn].getColonies());
             System.out.println(players[turn].getName() + " : " + roadSize + " road");
             
             players[turn].setLongestRoad(roadSize);
@@ -94,7 +96,7 @@ public class Game {
             }
             
             for(Player player : players) {
-                if(player.getLongestRoad() == max) {
+                if(player.getLongestRoad() == max && player.getLongestRoad() >= 5) {
                     player.setBonus(2);
                     canvas.setLongestRoadVisibility(player.number, true);
                 }
@@ -103,9 +105,10 @@ public class Game {
 
         }
 
-        turn = (turn+1)%3;
+        turn = (turn+1)%players.length;
         nbTurn++;
-        
+        System.out.println("Turn " + nbTurn);
+
         canvas.getProfils()[turn].transform().scale(20, 20);
         
         if(nbTurn == 2*players.length) {
@@ -177,9 +180,6 @@ public class Game {
         map.buildVillage(turn, x, y);
         addPoint();
 
-        if(nbTurn < players.length) players[turn].setFirstColony(new Vector2(x, y));  
-        else if(nbTurn < 2*players.length) players[turn].setSecondColony(new Vector2(x, y)); 
-
         players[turn].addColony(map.getColony(x, y));
         if(map.getColony(x, y).getPort() > -1) 
             players[turn].addPort(map.getColony(x, y).getPort());
@@ -204,7 +204,10 @@ public class Game {
     }
 
     public void addPoint() {
-        if(players[turn].increment(1)) canvas.showWinnerPannel(players[turn].getName());
+        if(players[turn].increment(1)) {
+            canvas.showWinnerPannel(players[turn].getName());
+            stopped = true;
+        }
         canvas.updateScore(turn, players[turn].getScore());
     }
 

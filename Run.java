@@ -13,7 +13,7 @@ public class Run {
 
         try {
             MusicPlayer music = new MusicPlayer("Music/Music.wav");
-            music.loop();
+            //music.loop();
         } catch(Exception e) {
             System.out.println("Error while playing music");
         }
