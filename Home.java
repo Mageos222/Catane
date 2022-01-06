@@ -30,6 +30,8 @@ public class Home {
     private int nbPlayer = 3;
     private boolean[] bot;
 
+    private boolean closed = false;
+
     public Home(Transform run) {
         ui = new UI();
         ui.setDimension(run.getSize().getX(), run.getSize().getY());
@@ -168,7 +170,7 @@ public class Home {
     }
 
     public Player[] run() {
-        while(ui.isActive()) {
+        while(!closed) {
             ui.nextFrame();
             
             try {
@@ -259,7 +261,7 @@ public class Home {
         int posX = ui.getPosX();
         int posY = ui.getPosY();
 
-        ui.close();
+        closed = true;
 
         run.setSize(width, height);
         run.setPosition(posX, posY);

@@ -13,7 +13,7 @@ public class Run {
 
         try {
             MusicPlayer music = new MusicPlayer("Music/Music.wav");
-            //music.loop();
+            music.loop();
         } catch(Exception e) {
             System.out.println("Error while playing music");
         }
@@ -54,7 +54,9 @@ public class Run {
         fps.start();
         //fps.show();
 
-        while(ui.isActive() || (loading != null && loading.isActiv()) || ui.getNbFrame() < 10) {
+        boolean closed = false;
+
+        while(!closed || (loading != null && loading.isActiv()) || ui.getNbFrame() < 10) {
             try {
                 ui.nextFrame();
                 game.update();
