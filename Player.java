@@ -1,7 +1,5 @@
 import java.util.ArrayList;
 
-import GameEngine.Vector2;
-
 public class Player {
 
     private final String name;

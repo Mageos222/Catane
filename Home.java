@@ -262,6 +262,7 @@ public class Home {
         int posY = ui.getPosY();
 
         closed = true;
+        ui.close();
 
         run.setSize(width, height);
         run.setPosition(posX, posY);
