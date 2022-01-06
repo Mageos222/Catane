@@ -363,10 +363,11 @@ public class Map {
 
     private int computeFirstPath(int p, Vector2 pos, ArrayList<Vector2> closed) {
         int res = 0;
-        System.out.println(pos.toString());
+        //System.out.println("Start from " + pos.toString());
 
         closed.add(pos);
         Vector2[] adja = getAdjacent(pos.getX(), pos.getY());
+
         if(map[pos.getY()][pos.getX()].getConnR() == p) 
             res += computeDirection(p, adja[0], closed, pos);
         if(map[pos.getY()][pos.getX()].getConnL() == p && !contain(closed, adja[1])) 
@@ -374,11 +375,13 @@ public class Map {
         if(map[pos.getY()][pos.getX()].getConnSup() == p && !contain(closed, adja[2])) 
             res += computeDirection(p, adja[2], closed, pos);
 
+
         return res;
     }
 
     private int computeDirection(int p, Vector2 pos, ArrayList<Vector2> closed, Vector2 prec) {
         closed.add(pos);
+        //System.out.println("Pass to " + pos.toString());
         int[] res = new int[3];
 
         Vector2[] adja = getAdjacent(pos.getX(), pos.getY());
